@@ -1,0 +1,290 @@
+name: 📊 Gerar Relatório Analítico
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'  # Todo domingo à meia-noite
+  push:
+    branches: [ main, gh-pages ]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  analyze-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+    - name: 📥 Checkout este repositório
+      uses: actions/checkout@v4
+    
+    - name: 📥 Checkout projeto principal
+      uses: actions/checkout@v4
+      with:
+        repository: rclessa25-hub/imoveis-maceio
+        token: ${{ secrets.GITHUB_TOKEN }}
+        path: 'imoveis-maceio'
+    
+    - name: 🔍 Analisar estrutura
+      id: analyze
+      run: |
+        echo "🔬 ANALISANDO ESTRUTURA DO PROJETO..."
+        echo "===================================="
+        
+        cd imoveis-maceio
+        
+        # Instalar tree se não existir
+        apt-get update && apt-get install -y tree 2>/dev/null || true
+        
+        # Contar arquivos
+        HTML_COUNT=$(find . -name "*.html" -type f | wc -l)
+        CSS_COUNT=$(find . -name "*.css" -type f | wc -l)
+        JS_COUNT=$(find . -name "*.js" -type f | wc -l)
+        JSON_COUNT=$(find . -name "*.json" -type f | wc -l)
+        IMG_COUNT=$(find . \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.gif" \) -type f | wc -l)
+        
+        # Linhas de código
+        TOTAL_LINES=$(find . -name "*.html" -o -name "*.css" -o -name "*.js" 2>/dev/null | xargs cat 2>/dev/null | wc -l || echo "0")
+        
+        # Gerar estrutura de árvore
+        tree_output=$(tree -a -I '.git|node_modules|__pycache__' --charset=utf-8 2>/dev/null || echo "Estrutura não disponível")
+        
+        # Salvar outputs
+        echo "HTML_COUNT=$HTML_COUNT" >> $GITHUB_OUTPUT
+        echo "CSS_COUNT=$CSS_COUNT" >> $GITHUB_OUTPUT
+        echo "JS_COUNT=$JS_COUNT" >> $GITHUB_OUTPUT
+        echo "JSON_COUNT=$JSON_COUNT" >> $GITHUB_OUTPUT
+        echo "IMG_COUNT=$IMG_COUNT" >> $GITHUB_OUTPUT
+        echo "TOTAL_LINES=$TOTAL_LINES" >> $GITHUB_OUTPUT
+        
+        # Salvar árvore em arquivo
+        echo "$tree_output" > ../project-tree.txt
+        
+        echo "✅ ANÁLISE CONCLUÍDA"
+        echo "📊 HTML: $HTML_COUNT | CSS: $CSS_COUNT | JS: $JS_COUNT"
+        echo "📁 Imagens: $IMG_COUNT | JSON: $JSON_COUNT"
+        echo "📈 Linhas: $TOTAL_LINES"
+    
+    - name: 📝 Gerar relatório HTML
+      run: |
+        echo "📄 GERANDO RELATÓRIO HTML..."
+        echo "============================"
+        
+        DATE_NOW=$(date '+%d/%m/%Y às %H:%M:%S')
+        PROJECT_TREE=$(cat project-tree.txt 2>/dev/null || echo "Árvore não disponível")
+        
+        cat > index.html << HTML
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 Relatório Analítico - Imóveis Maceió</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0d1117;
+            color: #c9d1d9;
+        }
+        header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #2ea44f;
+            margin-bottom: 30px;
+        }
+        h1 { color: #2ea44f; }
+        h2 { color: #58a6ff; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2ea44f;
+        }
+        
+        .tree-view {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .nav a {
+            color: #c9d1d9;
+            text-decoration: none;
+            padding: 8px 15px;
+            background: #161b22;
+            border-radius: 5px;
+            border: 1px solid #30363d;
+        }
+        .nav a:hover {
+            background: #2ea44f;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-file-alt"></i> Relatório Analítico</h1>
+        <h2>Imóveis Maceió - Análise Estrutural</h2>
+        <p><strong>Gerado em:</strong> $DATE_NOW</p>
+    </header>
+    
+    <div class="nav">
+        <a href="#stats"><i class="fas fa-chart-bar"></i> Estatísticas</a>
+        <a href="#structure"><i class="fas fa-sitemap"></i> Estrutura</a>
+        <a href="#details"><i class="fas fa-info-circle"></i> Detalhes</a>
+        <a href="https://rclessa25-hub.github.io/imoveis-maceio/" target="_blank">
+            <i class="fas fa-external-link-alt"></i> Site Principal
+        </a>
+    </div>
+    
+    <section id="stats">
+        <h2><i class="fas fa-chart-bar"></i> Estatísticas do Projeto</h2>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">${{ steps.analyze.outputs.HTML_COUNT }}</div>
+                <div>HTML</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${{ steps.analyze.outputs.CSS_COUNT }}</div>
+                <div>CSS</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${{ steps.analyze.outputs.JS_COUNT }}</div>
+                <div>JavaScript</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${{ steps.analyze.outputs.JSON_COUNT }}</div>
+                <div>JSON</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${{ steps.analyze.outputs.IMG_COUNT }}</div>
+                <div>Imagens</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${{ steps.analyze.outputs.TOTAL_LINES }}</div>
+                <div>Linhas de Código</div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="structure">
+        <h2><i class="fas fa-sitemap"></i> Estrutura Hierárquica</h2>
+        <div class="tree-view">
+$PROJECT_TREE
+        </div>
+    </section>
+    
+    <section id="details">
+        <h2><i class="fas fa-info-circle"></i> Informações do Projeto</h2>
+        
+        <div style="background: #161b22; padding: 20px; border-radius: 8px; border: 1px solid #30363d;">
+            <h3>📊 Dados Técnicos</h3>
+            <p><strong>URL do Projeto:</strong> https://rclessa25-hub.github.io/imoveis-maceio/</p>
+            <p><strong>Tecnologias:</strong> HTML5, CSS3, JavaScript, Supabase</p>
+            <p><strong>Arquitetura:</strong> Frontend modular com componentes reutilizáveis</p>
+            
+            <h3>🔄 Atualização Automática</h3>
+            <p>Este relatório é atualizado automaticamente:</p>
+            <ul>
+                <li>Todo domingo à meia-noite</li>
+                <li>A cada push no repositório principal</li>
+                <li>Manualmente via GitHub Actions</li>
+            </ul>
+        </div>
+    </section>
+    
+    <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #30363d; text-align: center;">
+        <p>Relatório gerado automaticamente por GitHub Actions</p>
+        <p>
+            <a href="https://rclessa25-hub.github.io/imoveis-maceio/" style="color: #2ea44f;">Site Principal</a> | 
+            <a href="https://github.com/rclessa25-hub/imoveis-maceio" style="color: #2ea44f;">Código Fonte</a> |
+            <a href="https://github.com/rclessa25-hub/reports-wlimoveis/actions" style="color: #2ea44f;">Executar Novamente</a>
+        </p>
+    </footer>
+</body>
+</html>
+HTML
+        
+        echo "✅ Relatório HTML gerado"
+        
+        # Criar também um README simples
+        cat > README.md << MD
+# Relatório Analítico - Imóveis Maceió
+
+Acesse o relatório completo em: [https://rclessa25-hub.github.io/reports-wlimoveis/](https://rclessa25-hub.github.io/reports-wlimoveis/)
+
+## Dados do Projeto
+- **URL:** https://rclessa25-hub.github.io/imoveis-maceio/
+- **Repositório:** https://github.com/rclessa25-hub/imoveis-maceio
+- **Tecnologias:** HTML5, CSS3, JavaScript, Supabase
+
+## Estatísticas Atuais
+- HTML: ${{ steps.analyze.outputs.HTML_COUNT }} arquivos
+- CSS: ${{ steps.analyze.outputs.CSS_COUNT }} arquivos
+- JavaScript: ${{ steps.analyze.outputs.JS_COUNT }} arquivos
+- Linhas de código: ${{ steps.analyze.outputs.TOTAL_LINES }}
+
+## Atualização
+Relatório atualizado automaticamente todo domingo à meia-noite.
+MD
+        
+        echo "✅ README.md gerado"
+    
+    - name: 📦 Fazer upload do relatório
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: '.'
+    
+    - name: 🚀 Publicar no GitHub Pages
+      uses: actions/deploy-pages@v2
+      id: deployment
+    
+    - name: 📢 Mostrar resultado
+      run: |
+        echo "🎉 RELATÓRIO PUBLICADO COM SUCESSO!"
+        echo "==================================="
+        echo ""
+        echo "🌐 URL DO RELATÓRIO:"
+        echo "https://rclessa25-hub.github.io/reports-wlimoveis/"
+        echo ""
+        echo "📊 ESTATÍSTICAS GERADAS:"
+        echo "- Arquivos HTML: ${{ steps.analyze.outputs.HTML_COUNT }}"
+        echo "- Arquivos CSS: ${{ steps.analyze.outputs.CSS_COUNT }}"
+        echo "- Arquivos JavaScript: ${{ steps.analyze.outputs.JS_COUNT }}"
+        echo "- Total de linhas: ${{ steps.analyze.outputs.TOTAL_LINES }}"
+        echo ""
+        echo "🔄 PRÓXIMA ATUALIZAÇÃO:"
+        echo "Todo domingo às 00:00 (meia-noite)"
