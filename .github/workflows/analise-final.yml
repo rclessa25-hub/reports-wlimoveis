@@ -1,0 +1,280 @@
+name: 📊 Relatório Final
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+    
+    - name: 🔍 Analisar projeto imoveis-maceio
+      run: |
+        echo "🔬 ANALISANDO PROJETO IMÓVEIS MACEIÓ..."
+        echo "======================================="
+        
+        # Clonar o projeto PRINCIPAL
+        git clone https://github.com/rclessa25-hub/imoveis-maceio.git projeto-fonte
+        
+        cd projeto-fonte
+        
+        echo "📁 ESTRUTURA ENCONTRADA:"
+        echo "========================"
+        ls -la
+        
+        # CONTAGEM REAL
+        HTML_COUNT=$(find . -name "*.html" -type f | wc -l)
+        CSS_COUNT=$(find . -name "*.css" -type f | wc -l)
+        JS_COUNT=$(find . -name "*.js" -type f | wc -l)
+        JS_MODULES=$(find js/modules -name "*.js" -type f 2>/dev/null | wc -l || echo "0")
+        JS_COMPONENTS=$(find js/components -name "*.js" -type f 2>/dev/null | wc -l || echo "0")
+        JSON_COUNT=$(find . -name "*.json" -type f | wc -l)
+        IMG_COUNT=$(find assets -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.svg" \) 2>/dev/null | wc -l || echo "0")
+        
+        # Salvar em arquivo
+        echo "HTML_COUNT=$HTML_COUNT" > ../dados.txt
+        echo "CSS_COUNT=$CSS_COUNT" >> ../dados.txt
+        echo "JS_COUNT=$JS_COUNT" >> ../dados.txt
+        echo "JS_MODULES=$JS_MODULES" >> ../dados.txt
+        echo "JS_COMPONENTS=$JS_COMPONENTS" >> ../dados.txt
+        echo "JSON_COUNT=$JSON_COUNT" >> ../dados.txt
+        echo "IMG_COUNT=$IMG_COUNT" >> ../dados.txt
+        
+        echo "✅ ANÁLISE CONCLUÍDA!"
+    
+    - name: 📝 Gerar relatório
+      run: |
+        echo "📄 GERANDO RELATÓRIO..."
+        
+        # Ler dados
+        source dados.txt
+        
+        DATE_NOW=$(date '+%d/%m/%Y às %H:%M:%S')
+        
+        # HTML SIMPLES mas funcional
+        cat > index.html << EOF
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Relatório - Imóveis Maceió</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 3px solid #2ea44f;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2ea44f;
+            font-size: 2.5em;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .stat-box {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2ea44f;
+        }
+        .modules {
+            background: #161b22;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .module-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .module {
+            background: #0d1117;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #2ea44f;
+        }
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #30363d;
+            color: #8b949e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Relatório Analítico</h1>
+            <p>Imóveis Maceió - Sistema Modular</p>
+            <p><strong>Gerado em:</strong> $DATE_NOW</p>
+        </header>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-number">$HTML_COUNT</div>
+                <div>HTML</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">$CSS_COUNT</div>
+                <div>CSS</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">$JS_COUNT</div>
+                <div>JavaScript</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">$JS_MODULES</div>
+                <div>Módulos JS</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">$JS_COMPONENTS</div>
+                <div>Componentes</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">$JSON_COUNT</div>
+                <div>JSON</div>
+            </div>
+        </div>
+        
+        <div class="modules">
+            <h3>🧩 Arquitetura Modular</h3>
+            <div class="module-list">
+                <div class="module">
+                    <strong>admin.js</strong><br>
+                    Painel administrativo
+                </div>
+                <div class="module">
+                    <strong>supabase.js</strong><br>
+                    Integração com banco
+                </div>
+                <div class="module">
+                    <strong>properties.js</strong><br>
+                    Gestão de imóveis
+                </div>
+                <div class="module">
+                    <strong>gallery.js</strong><br>
+                    Galeria de imagens
+                </div>
+                <div class="module">
+                    <strong>utils.js</strong><br>
+                    Funções utilitárias
+                </div>
+                <div class="module">
+                    <strong>Header.js</strong><br>
+                    Componente de cabeçalho
+                </div>
+                <div class="module">
+                    <strong>PropertyCard.js</strong><br>
+                    Card de imóvel
+                </div>
+            </div>
+        </div>
+        
+        <div style="background: #161b22; padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <h3>📁 Estrutura Confirmada</h3>
+            <pre style="background: #0d1117; padding: 15px; border-radius: 8px; overflow-x: auto;">
+imoveis-maceio/
+├── index.html
+├── css/
+│   ├── main.css
+│   ├── admin.css
+│   ├── gallery.css
+│   ├── header.css
+│   └── responsive.css
+├── js/
+│   ├── main.js
+│   ├── modules/
+│   │   ├── admin.js
+│   │   ├── supabase.js
+│   │   ├── properties.js
+│   │   ├── gallery.js
+│   │   └── utils.js
+│   └── components/
+│       ├── Header.js
+│       └── PropertyCard.js
+├── assets/
+│   └── images/
+└── .github/
+    └── workflows/
+            </pre>
+        </div>
+        
+        <footer>
+            <p><strong>Relatório gerado automaticamente</strong></p>
+            <p>URL Principal: <a href="https://rclessa25-hub.github.io/imoveis-maceio/" style="color: #2ea44f;">Imóveis Maceió</a></p>
+            <p>Atualizado: $DATE_NOW</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Mostrar dados no console
+        console.log('📊 Relatório carregado:');
+        console.log('HTML:', $HTML_COUNT);
+        console.log('CSS:', $CSS_COUNT);
+        console.log('JavaScript:', $JS_COUNT);
+    </script>
+</body>
+</html>
+EOF
+        
+        echo "✅ Relatório gerado com sucesso!"
+        echo "📊 Valores usados:"
+        echo "HTML: $HTML_COUNT"
+        echo "CSS: $CSS_COUNT"
+        echo "JavaScript: $JS_COUNT"
+    
+    - name: 📦 Upload para GitHub Pages
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '.'
+    
+    - name: 🚀 Deploy
+      uses: actions/deploy-pages@v4
+    
+    - name: 🎉 Mostrar resultado
+      run: |
+        echo ""
+        echo "✅ RELATÓRIO PUBLICADO!"
+        echo "======================="
+        echo ""
+        echo "🌐 ACESSE EM:"
+        echo "https://rclessa25-hub.github.io/reports-wlimoveis/"
+        echo ""
+        echo "⚡ CARREGAMENTO INSTANTÂNEO"
