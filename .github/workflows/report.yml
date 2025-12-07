@@ -1,0 +1,56 @@
+name: Gerar Relatórios (Somente Análise)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Analisar projeto
+      run: |
+        echo "📊 ANÁLISE DO PROJETO"
+        echo "======================"
+        
+        # Estatísticas
+        HTML=$(find . -name "*.html" | wc -l)
+        CSS=$(find . -name "*.css" | wc -l)
+        JS=$(find . -name "*.js" | wc -l)
+        TOTAL=$((HTML + CSS + JS))
+        
+        echo ""
+        echo "📈 ESTATÍSTICAS:"
+        echo "- HTML: $HTML arquivos"
+        echo "- CSS: $CSS arquivos"
+        echo "- JavaScript: $JS arquivos"
+        echo "- TOTAL: $TOTAL arquivos"
+        echo ""
+        echo "📁 ESTRUTURA PRINCIPAL:"
+        find . -maxdepth 2 -type f -name "*.html" -o -name "*.css" -o -name "*.js" | sort | head -15
+        echo ""
+        echo "✅ ANÁLISE CONCLUÍDA"
+        echo "Site principal: https://rclessa25-hub.github.io/imoveis-maceio/"
+    
+    - name: Criar relatório de texto (opcional)
+      run: |
+        # Criar relatório em formato texto (não interfere no site)
+        mkdir -p .reports
+        HTML=$(find . -name "*.html" | wc -l)
+        CSS=$(find . -name "*.css" | wc -l)
+        JS=$(find . -name "*.js" | wc -l)
+        
+        echo "# Relatório Técnico - $(date)" > .reports/analise.txt
+        echo "" >> .reports/analise.txt
+        echo "## Estatísticas" >> .reports/analise.txt
+        echo "- HTML: $HTML" >> .reports/analise.txt
+        echo "- CSS: $CSS" >> .reports/analise.txt
+        echo "- JavaScript: $JS" >> .reports/analise.txt
+        echo "" >> .reports/analise.txt
+        echo "## Estrutura" >> .reports/analise.txt
+        find . -maxdepth 3 -type f | sort >> .reports/analise.txt
+        
+        echo "📄 Relatório salvo em: .reports/analise.txt"
