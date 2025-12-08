@@ -148,8 +148,9 @@ jobs:
         echo "⚙️ YAML: $YML_COUNT arquivos"
         echo ""
         
-        # Criar índice principal
-        cat > index.html << 'EOF'
+        # Criar arquivo HTML inicial
+        echo 'Criando estrutura HTML...'
+        cat > index.html << 'HTML_EOF'
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -218,7 +219,7 @@ a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
-EOF
+HTML_EOF
         
         # Botões de navegação
         echo '<div class="nav-buttons">' >> index.html
@@ -285,17 +286,21 @@ EOF
         echo '<p>Scripts JavaScript</p>' >> index.html
         echo '</div>' >> index.html
         
-        echo '<div class="summary-item">' >> index.html
-        echo "<h4>🧩 Módulos JS</h4>" >> index.html
-        echo "<div class=\"summary-number\">$MODULES_COUNT</div>" >> index.html
-        echo '<p>Arquivos em modules/</p>' >> index.html
-        echo '</div>' >> index.html
+        if [ "$MODULES_COUNT" -gt 0 ]; then
+          echo '<div class="summary-item">' >> index.html
+          echo "<h4>🧩 Módulos JS</h4>" >> index.html
+          echo "<div class=\"summary-number\">$MODULES_COUNT</div>" >> index.html
+          echo '<p>Arquivos em modules/</p>' >> index.html
+          echo '</div>' >> index.html
+        fi
         
-        echo '<div class="summary-item">' >> index.html
-        echo "<h4>⚙️ Componentes JS</h4>" >> index.html
-        echo "<div class=\"summary-number\">$COMPONENTS_COUNT</div>" >> index.html
-        echo '<p>Arquivos em components/</p>' >> index.html
-        echo '</div>' >> index.html
+        if [ "$COMPONENTS_COUNT" -gt 0 ]; then
+          echo '<div class="summary-item">' >> index.html
+          echo "<h4>⚙️ Componentes JS</h4>" >> index.html
+          echo "<div class=\"summary-number\">$COMPONENTS_COUNT</div>" >> index.html
+          echo '<p>Arquivos em components/</p>' >> index.html
+          echo '</div>' >> index.html
+        fi
         
         echo '<div class="summary-item">' >> index.html
         echo "<h4>🎨 Arquivos CSS</h4>" >> index.html
@@ -331,19 +336,17 @@ EOF
             size_kb=$(( (size + 1023) / 1024 ))
             file_id=$(echo "$relative_path" | tr '/.' '_')
             
-            cat >> index.html << EOF
-<div class="file-card">
-<h3>🌐 <span class="html">$filename</span> <span class="file-size-badge">${size_kb} KB</span></h3>
-<p><strong>📍 Local:</strong> $(dirname "$relative_path")</p>
-<p><strong>📏 Linhas:</strong> $lines</p>
-<div class="file-stats">
-<span><i class="fas fa-file-code"></i> HTML</span>
-<span><i class="fas fa-bars"></i> $lines linhas</span>
-<span><i class="fas fa-weight-hanging"></i> ${size_kb} KB</span>
-</div>
-<p><a href="#html_${file_id}">📄 Ver código COMPLETO →</a></p>
-</div>
-EOF
+            echo '<div class="file-card">' >> index.html
+            echo "<h3>🌐 <span class=\"html\">$filename</span> <span class=\"file-size-badge\">${size_kb} KB</span></h3>" >> index.html
+            echo "<p><strong>📍 Local:</strong> $(dirname "$relative_path")</p>" >> index.html
+            echo "<p><strong>📏 Linhas:</strong> $lines</p>" >> index.html
+            echo '<div class="file-stats">' >> index.html
+            echo '<span><i class="fas fa-file-code"></i> HTML</span>' >> index.html
+            echo "<span><i class=\"fas fa-bars\"></i> $lines linhas</span>" >> index.html
+            echo "<span><i class=\"fas fa-weight-hanging\"></i> ${size_kb} KB</span>" >> index.html
+            echo '</div>' >> index.html
+            echo "<p><a href=\"#html_${file_id}\">📄 Ver código COMPLETO →</a></p>" >> index.html
+            echo '</div>' >> index.html
           fi
         done
         
@@ -368,33 +371,27 @@ EOF
               category="Componente"
             fi
             
-            cat >> index.html << EOF
-<div class="file-card">
-<h3>📜 <span class="js">$filename</span> <span class="file-size-badge">${size_kb} KB</span></h3>
-<p><strong>📍 Local:</strong> $(dirname "$relative_path")</p>
-<p><strong>📏 Linhas:</strong> $lines</p>
-EOF
+            echo '<div class="file-card">' >> index.html
+            echo "<h3>📜 <span class=\"js\">$filename</span> <span class=\"file-size-badge\">${size_kb} KB</span></h3>" >> index.html
+            echo "<p><strong>📍 Local:</strong> $(dirname "$relative_path")</p>" >> index.html
+            echo "<p><strong>📏 Linhas:</strong> $lines</p>" >> index.html
             
             if [ "$functions" -gt 0 ]; then
               echo "<p><strong>⚡ Funções:</strong> <span class=\"functions-count\">$functions funções</span></p>" >> index.html
             fi
             
-            cat >> index.html << EOF
-<div class="file-stats">
-<span><i class="fas fa-file-code"></i> $category</span>
-<span><i class="fas fa-bars"></i> $lines linhas</span>
-EOF
+            echo '<div class="file-stats">' >> index.html
+            echo "<span><i class=\"fas fa-file-code\"></i> $category</span>" >> index.html
+            echo "<span><i class=\"fas fa-bars\"></i> $lines linhas</span>" >> index.html
             
             if [ "$functions" -gt 0 ]; then
               echo "<span><i class=\"fas fa-code\"></i> $functions funções</span>" >> index.html
             fi
             
-            cat >> index.html << EOF
-<span><i class="fas fa-weight-hanging"></i> ${size_kb} KB</span>
-</div>
-<p><a href="#js_${file_id}">📜 Ver código COMPLETO →</a></p>
-</div>
-EOF
+            echo "<span><i class=\"fas fa-weight-hanging\"></i> ${size_kb} KB</span>" >> index.html
+            echo '</div>' >> index.html
+            echo "<p><a href=\"#js_${file_id}\">📜 Ver código COMPLETO →</a></p>" >> index.html
+            echo '</div>' >> index.html
           fi
         done
         
@@ -408,19 +405,17 @@ EOF
             size_kb=$(( (size + 1023) / 1024 ))
             file_id=$(echo "$relative_path" | tr '/.' '_')
             
-            cat >> index.html << EOF
-<div class="file-card">
-<h3>🎨 <span class="css">$filename</span> <span class="file-size-badge">${size_kb} KB</span></h3>
-<p><strong>📍 Local:</strong> $(dirname "$relative_path")</p>
-<p><strong>📏 Linhas:</strong> $lines</p>
-<div class="file-stats">
-<span><i class="fas fa-file-code"></i> CSS</span>
-<span><i class="fas fa-bars"></i> $lines linhas</span>
-<span><i class="fas fa-weight-hanging"></i> ${size_kb} KB</span>
-</div>
-<p><a href="#css_${file_id}">🎨 Ver código COMPLETO →</a></p>
-</div>
-EOF
+            echo '<div class="file-card">' >> index.html
+            echo "<h3>🎨 <span class=\"css\">$filename</span> <span class=\"file-size-badge\">${size_kb} KB</span></h3>" >> index.html
+            echo "<p><strong>📍 Local:</strong> $(dirname "$relative_path")</p>" >> index.html
+            echo "<p><strong>📏 Linhas:</strong> $lines</p>" >> index.html
+            echo '<div class="file-stats">' >> index.html
+            echo '<span><i class="fas fa-file-code"></i> CSS</span>' >> index.html
+            echo "<span><i class=\"fas fa-bars\"></i> $lines linhas</span>" >> index.html
+            echo "<span><i class=\"fas fa-weight-hanging\"></i> ${size_kb} KB</span>" >> index.html
+            echo '</div>' >> index.html
+            echo "<p><a href=\"#css_${file_id}\">🎨 Ver código COMPLETO →</a></p>" >> index.html
+            echo '</div>' >> index.html
           fi
         done
         
@@ -434,19 +429,17 @@ EOF
             size_kb=$(( (size + 1023) / 1024 ))
             file_id=$(echo "$relative_path" | tr '/.' '_')
             
-            cat >> index.html << EOF
-<div class="file-card">
-<h3>📋 <span class="json">$filename</span> <span class="file-size-badge">${size_kb} KB</span></h3>
-<p><strong>📍 Local:</strong> $(dirname "$relative_path")</p>
-<p><strong>📏 Linhas:</strong> $lines</p>
-<div class="file-stats">
-<span><i class="fas fa-file-code"></i> JSON</span>
-<span><i class="fas fa-bars"></i> $lines linhas</span>
-<span><i class="fas fa-weight-hanging"></i> ${size_kb} KB</span>
-</div>
-<p><a href="#json_${file_id}">📋 Ver código COMPLETO →</a></p>
-</div>
-EOF
+            echo '<div class="file-card">' >> index.html
+            echo "<h3>📋 <span class=\"json\">$filename</span> <span class=\"file-size-badge\">${size_kb} KB</span></h3>" >> index.html
+            echo "<p><strong>📍 Local:</strong> $(dirname "$relative_path")</p>" >> index.html
+            echo "<p><strong>📏 Linhas:</strong> $lines</p>" >> index.html
+            echo '<div class="file-stats">' >> index.html
+            echo '<span><i class="fas fa-file-code"></i> JSON</span>' >> index.html
+            echo "<span><i class=\"fas fa-bars\"></i> $lines linhas</span>" >> index.html
+            echo "<span><i class=\"fas fa-weight-hanging\"></i> ${size_kb} KB</span>" >> index.html
+            echo '</div>' >> index.html
+            echo "<p><a href=\"#json_${file_id}\">📋 Ver código COMPLETO →</a></p>" >> index.html
+            echo '</div>' >> index.html
           fi
         done
         
@@ -513,7 +506,7 @@ EOF
               line_num=1
               while IFS= read -r line || [ -n "$line" ]; do
                 # Escapar HTML
-                line_escaped=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/\"/\&quot;/g; s/'"'"'/\&apos;/g')
+                line_escaped=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
                 
                 echo "<span class=\"line-number\">$line_num</span>$line_escaped<br/>" >> index.html
                 line_num=$((line_num + 1))
@@ -521,7 +514,7 @@ EOF
             fi
             
             echo '</pre>' >> index.html
-            echo '<div style="margin-top: 15px; padding: 10px; background: rgba(46, 164, 79, 0.1); border-radius: 5px; text-align: center;">' >> index.html
+            echo "<div style=\"margin-top: 15px; padding: 10px; background: rgba(46, 164, 79, 0.1); border-radius: 5px; text-align: center;\">" >> index.html
             echo "<strong>✅ EXTRADO COMPLETAMENTE:</strong> Todas as $lines linhas foram carregadas." >> index.html
             echo '</div>' >> index.html
             echo '</div>' >> index.html
@@ -529,53 +522,52 @@ EOF
         done
         
         # FOOTER
-        cat >> index.html << EOF
-<footer style="text-align: center; margin-top: 50px; padding-top: 30px; border-top: 1px solid #30363d; color: #8b949e; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 30px;">
-<h3 style="color: #2ea44f;">📥 Extração COMPLETA e SEM LIMITAÇÕES</h3>
-<p>✅ Contagem EXATA: $TOTAL_LINES linhas em $TOTAL_FILES arquivos</p>
-<p>✅ Extraídas todas as funções JavaScript: $TOTAL_FUNCTIONS funções</p>
-<p>✅ Visualização sem restrições: Nenhuma linha foi omitida</p>
-<p><strong>Gerado automaticamente em $DATE_NOW</strong></p>
-<div style="margin-top: 20px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
-<a href="https://rclessa25-hub.github.io/imoveis-maceio/" style="color: #2ea44f; padding: 12px 25px; background: rgba(46, 164, 79, 0.1); border-radius: 6px; display: inline-flex; align-items: center; gap: 10px;">
-<i class="fas fa-external-link-alt"></i> Site Principal
-</a>
-<a href="https://github.com/rclessa25-hub/imoveis-maceio" style="color: #58a6ff; padding: 12px 25px; background: rgba(88, 166, 255, 0.1); border-radius: 6px; display: inline-flex; align-items: center; gap: 10px;">
-<i class="fab fa-github"></i> Repositório Original
-</a>
-<a href="#top" style="color: #f0f6fc; padding: 12px 25px; background: rgba(110, 118, 129, 0.1); border-radius: 6px; display: inline-flex; align-items: center; gap: 10px;">
-<i class="fas fa-arrow-up"></i> Voltar ao Topo
-</a>
-</div>
-</footer>
-</div>
-EOF
+        echo '<footer style="text-align: center; margin-top: 50px; padding-top: 30px; border-top: 1px solid #30363d; color: #8b949e; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 30px;">' >> index.html
+        echo '<h3 style="color: #2ea44f;">📥 Extração COMPLETA e SEM LIMITAÇÕES</h3>' >> index.html
+        echo "<p>✅ Contagem EXATA: $TOTAL_LINES linhas em $TOTAL_FILES arquivos</p>" >> index.html
+        echo "<p>✅ Extraídas todas as funções JavaScript: $TOTAL_FUNCTIONS funções</p>" >> index.html
+        echo '<p>✅ Visualização sem restrições: Nenhuma linha foi omitida</p>' >> index.html
+        echo "<p><strong>Gerado automaticamente em $DATE_NOW</strong></p>" >> index.html
+        echo '<div style="margin-top: 20px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">' >> index.html
+        echo '<a href="https://rclessa25-hub.github.io/imoveis-maceio/" style="color: #2ea44f; padding: 12px 25px; background: rgba(46, 164, 79, 0.1); border-radius: 6px; display: inline-flex; align-items: center; gap: 10px;">' >> index.html
+        echo '<i class="fas fa-external-link-alt"></i> Site Principal' >> index.html
+        echo '</a>' >> index.html
+        echo '<a href="https://github.com/rclessa25-hub/imoveis-maceio" style="color: #58a6ff; padding: 12px 25px; background: rgba(88, 166, 255, 0.1); border-radius: 6px; display: inline-flex; align-items: center; gap: 10px;">' >> index.html
+        echo '<i class="fab fa-github"></i> Repositório Original' >> index.html
+        echo '</a>' >> index.html
+        echo '<a href="#top" style="color: #f0f6fc; padding: 12px 25px; background: rgba(110, 118, 129, 0.1); border-radius: 6px; display: inline-flex; align-items: center; gap: 10px;">' >> index.html
+        echo '<i class="fas fa-arrow-up"></i> Voltar ao Topo' >> index.html
+        echo '</a>' >> index.html
+        echo '</div>' >> index.html
+        echo '</footer>' >> index.html
+        
+        echo '</div>' >> index.html
         
         # Script para melhor destaque de sintaxe
-        cat >> index.html << 'EOF'
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    // Suavizar rolagem para âncoras
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute("href");
-            if(targetId === "#") return;
-            const targetElement = document.querySelector(targetId);
-            if(targetElement) {
-                window.scrollTo({
-                    top: targetElement.offsetTop - 20,
-                    behavior: "smooth"
-                });
-            }
-        });
-    });
-});
-</script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</body>
-</html>
-EOF
+        echo '<script>' >> index.html
+        echo 'document.addEventListener("DOMContentLoaded", function() {' >> index.html
+        echo '    // Suavizar rolagem para âncoras' >> index.html
+        echo '    document.querySelectorAll(\'a[href^="#"]\').forEach(anchor => {' >> index.html
+        echo '        anchor.addEventListener("click", function(e) {' >> index.html
+        echo '            e.preventDefault();' >> index.html
+        echo '            const targetId = this.getAttribute("href");' >> index.html
+        echo '            if(targetId === "#") return;' >> index.html
+        echo '            const targetElement = document.querySelector(targetId);' >> index.html
+        echo '            if(targetElement) {' >> index.html
+        echo '                window.scrollTo({' >> index.html
+        echo '                    top: targetElement.offsetTop - 20,' >> index.html
+        echo '                    behavior: "smooth"' >> index.html
+                echo '                });' >> index.html
+        echo '            }' >> index.html
+        echo '        });' >> index.html
+        echo '    });' >> index.html
+        echo '});' >> index.html
+        echo '</script>' >> index.html
+        
+        # Font Awesome
+        echo '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">' >> index.html
+        echo '</body>' >> index.html
+        echo '</html>' >> index.html
         
         echo "✅ Relatório COMPLETO gerado com TODAS as linhas!"
         
@@ -618,11 +610,10 @@ EOF
         echo "✅ MELHORIAS IMPLEMENTADAS:"
         echo "1. ✅ REMOVIDA TODAS AS LIMITAÇÕES DE LINHAS"
         echo "2. ✅ TODAS AS $TOTAL_LINES LINHAS EXTRAÍDAS"
-        echo "3. ✅ ESTRUTURA COMPLETA DO PROJETO"
-        echo "4. ✅ CONTAGEM PRECISA DE FUNÇÕES"
-        echo "5. ✅ NAVEGAÇÃO FIXA MELHORADA"
-        echo "6. ✅ ESTATÍSTICAS DETALHADAS"
-        echo "7. ✅ VISUALIZAÇÃO SEM RESTRIÇÕES"
+        echo "3. ✅ CONTAGEM PRECISA DE FUNÇÕES"
+        echo "4. ✅ NAVEGAÇÃO FIXA MELHORADA"
+        echo "5. ✅ ESTATÍSTICAS DETALHADAS"
+        echo "6. ✅ VISUALIZAÇÃO SEM RESTRIÇÕES"
         echo ""
         echo "🌐 ACESSE EM:"
         echo "https://rclessa25-hub.github.io/reports-wlimoveis/"
