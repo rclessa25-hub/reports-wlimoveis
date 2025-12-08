@@ -112,6 +112,28 @@ jobs:
         echo "⚙️ YAML: $YML_COUNT arquivos"
         echo ""
         
+        # Contar funções totais - VERSÃO SIMPLIFICADA
+        echo "🔍 Contando funções JavaScript..."
+        TOTAL_FUNCTIONS=0
+        
+        # Método simplificado: contar palavras-chave "function" e "=>"
+        for js_file in $JS_FILES; do
+          # Contar "function nome()" e "function nome ()"
+          func_count1=$(grep -c -E "^[[:space:]]*function[[:space:]]+[[:alnum:]_]+" "$js_file" 2>/dev/null || echo "0")
+          
+          # Contar "const nome = () =>" e "let nome = () =>" e "var nome = () =>"
+          func_count2=$(grep -c -E "(const|let|var)[[:space:]]+[[:alnum:]_]+[[:space:]]*=[[:space:]]*.*=>" "$js_file" 2>/dev/null || echo "0")
+          
+          # Contar "class Nome"
+          func_count3=$(grep -c -E "^[[:space:]]*class[[:space:]]+[[:alnum:]_]+" "$js_file" 2>/dev/null || echo "0")
+          
+          # Contar métodos de classe "nome() {"
+          func_count4=$(grep -c -E "[[:alnum:]_]+[[:space:]]*\([^)]*\)[[:space:]]*{" "$js_file" 2>/dev/null || echo "0")
+          
+          file_functions=$((func_count1 + func_count2 + func_count3 + func_count4))
+          TOTAL_FUNCTIONS=$((TOTAL_FUNCTIONS + file_functions))
+        done
+        
         # Criar arquivo HTML - usando múltiplos echos
         echo 'Criando estrutura HTML...'
         
@@ -181,15 +203,6 @@ jobs:
         echo '<p style="font-size: 1.2em;"><strong>Linhas totais EXATAS (COMPLETO)</strong></p>' >> index.html
         echo '<p style="color: #8b949e;">Todas as linhas de todos os arquivos foram extraídas</p>' >> index.html
         echo '</div>' >> index.html
-        
-        # Contar funções totais - EXPRESSÃO REGULAR CORRIGIDA
-        echo "🔍 Contando funções JavaScript..."
-        TOTAL_FUNCTIONS=0
-        for js_file in $JS_FILES; do
-          # Expressão regular simplificada e corrigida
-          functions=$(grep -E "(^|[[:space:]])(function[[:space:]]+[[:alnum:]_]+|const[[:space:]]+[[:alnum:]_]+[[:space:]]*=[[:space:]]*(async[[:space:]])?\(|let[[:space:]]+[[:alnum:]_]+[[:space:]]*=[[:space:]]*(async[[:space:]])?\(|var[[:space:]]+[[:alnum:]_]+[[:space:]]*=[[:space:]]*(async[[:space:]])?\(|class[[:space:]]+[[:alnum:]_]+)" "$js_file" 2>/dev/null | wc -l || echo "0")
-          TOTAL_FUNCTIONS=$((TOTAL_FUNCTIONS + functions))
-        done
         
         echo '<div class="summary-grid">' >> index.html
         echo '<div class="summary-item">' >> index.html
@@ -271,8 +284,12 @@ jobs:
           size_kb=$(( (size + 1023) / 1024 ))
           file_id=$(echo "$relative_path" | tr '/.' '_' | tr -cd '[:alnum:]_')
           
-          # Contar funções para este arquivo - EXPRESSÃO CORRIGIDA
-          functions=$(grep -E "(^|[[:space:]])(function[[:space:]]+[[:alnum:]_]+|const[[:space:]]+[[:alnum:]_]+[[:space:]]*=[[:space:]]*(async[[:space:]])?\(|let[[:space:]]+[[:alnum:]_]+[[:space:]]*=[[:space:]]*(async[[:space:]])?\(|var[[:space:]]+[[:alnum:]_]+[[:space:]]*=[[:space:]]*(async[[:space:]])?\(|class[[:space:]]+[[:alnum:]_]+)" "$file" 2>/dev/null | wc -l || echo "0")
+          # Contar funções para este arquivo - VERSÃO SIMPLIFICADA
+          func_count1=$(grep -c -E "^[[:space:]]*function[[:space:]]+[[:alnum:]_]+" "$file" 2>/dev/null || echo "0")
+          func_count2=$(grep -c -E "(const|let|var)[[:space:]]+[[:alnum:]_]+[[:space:]]*=[[:space:]]*.*=>" "$file" 2>/dev/null || echo "0")
+          func_count3=$(grep -c -E "^[[:space:]]*class[[:space:]]+[[:alnum:]_]+" "$file" 2>/dev/null || echo "0")
+          func_count4=$(grep -c -E "[[:alnum:]_]+[[:space:]]*\([^)]*\)[[:space:]]*{" "$file" 2>/dev/null || echo "0")
+          functions=$((func_count1 + func_count2 + func_count3 + func_count4))
           
           echo '<div class="file-card">' >> index.html
           echo "<h3>📜 <span class=\"js\">$filename</span> <span class=\"file-size-badge\">${size_kb} KB</span></h3>" >> index.html
