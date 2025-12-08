@@ -1,4 +1,4 @@
-name: 📊 Gerar Relatório Analítico
+name: 📊 Gerar Relatório Analítico (não utilizar)
 
 on:
   workflow_dispatch:
