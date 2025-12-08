@@ -1,0 +1,311 @@
+name: 🗂️ Todo o Código
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  generate-all-code:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+    
+    - name: 📥 Baixar projeto
+      run: |
+        echo "🗂️ BAIXANDO PROJETO..."
+        git clone https://github.com/rclessa25-hub/imoveis-maceio.git projeto-completo
+        
+        echo "📊 CONTANDO ARQUIVOS..."
+        find projeto-completo -type f -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" | wc -l
+    
+    - name: 📝 Criar página HTML
+      run: |
+        echo "📄 CRIANDO PÁGINA COM TODO O CÓDIGO..."
+        
+        DATE_NOW=$(date '+%d/%m/%Y às %H:%M:%S')
+        
+        # Criar HTML básico
+        echo '<!DOCTYPE html>' > index.html
+        echo '<html lang="pt-BR">' >> index.html
+        echo '<head>' >> index.html
+        echo '<meta charset="UTF-8">' >> index.html
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
+        echo '<title>🗂️ Todo o Código - Imóveis Maceió</title>' >> index.html
+        echo '<style>' >> index.html
+        echo 'body { font-family: Arial, sans-serif; background: #0d1117; color: white; margin: 0; padding: 20px; }' >> index.html
+        echo '.container { max-width: 1600px; margin: 0 auto; }' >> index.html
+        echo 'header { text-align: center; padding: 30px 0; border-bottom: 3px solid #2ea44f; }' >> index.html
+        echo 'h1 { color: #2ea44f; font-size: 2.5em; }' >> index.html
+        echo 'h2 { color: #58a6ff; margin: 30px 0 20px; }' >> index.html
+        echo '.file-section { margin: 40px 0; }' >> index.html
+        echo '.file-header { background: #161b22; padding: 15px; border-radius: 8px; margin-bottom: 15px; }' >> index.html
+        echo '.file-header h3 { margin: 0; color: #58a6ff; }' >> index.html
+        echo '.code-block { background: #000; padding: 20px; border-radius: 8px; overflow-x: auto; max-height: 800px; overflow-y: auto; }' >> index.html
+        echo 'pre { margin: 0; font-family: Monaco, monospace; font-size: 0.9em; line-height: 1.4; }' >> index.html
+        echo '.line-num { color: #6a737d; display: inline-block; width: 50px; text-align: right; margin-right: 15px; }' >> index.html
+        echo '.summary { background: #161b22; padding: 25px; border-radius: 10px; margin: 30px 0; }' >> index.html
+        echo '</style>' >> index.html
+        echo '</head>' >> index.html
+        echo '<body>' >> index.html
+        echo '<div class="container">' >> index.html
+        echo '<header>' >> index.html
+        echo '<h1>🗂️ Todo o Código Fonte</h1>' >> index.html
+        echo '<p>Imóveis Maceió - Sistema Completo</p>' >> index.html
+        echo '<p><strong>Gerado em:</strong> '"$DATE_NOW"'</p>' >> index.html
+        echo '</header>' >> index.html
+        
+        # RESUMO
+        echo '<div class="summary">' >> index.html
+        echo '<h2>📊 Resumo</h2>' >> index.html
+        
+        # Contar arquivos
+        total_html=$(find projeto-completo -name "*.html" -type f | wc -l)
+        total_js=$(find projeto-completo -name "*.js" -type f | wc -l)
+        total_css=$(find projeto-completo -name "*.css" -type f | wc -l)
+        total_json=$(find projeto-completo -name "*.json" -type f | wc -l)
+        total_files=$((total_html + total_js + total_css + total_json))
+        
+        # Contar linhas
+        total_lines=$(find projeto-completo -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" -type f -exec cat {} \; 2>/dev/null | wc -l || echo "0")
+        
+        echo '<p><strong>Total de arquivos:</strong> '"$total_files"'</p>' >> index.html
+        echo '<p><strong>Total de linhas:</strong> '"$total_lines"'</p>' >> index.html
+        echo '<p><strong>HTML:</strong> '"$total_html"' arquivos</p>' >> index.html
+        echo '<p><strong>JavaScript:</strong> '"$total_js"' arquivos</p>' >> index.html
+        echo '<p><strong>CSS:</strong> '"$total_css"' arquivos</p>' >> index.html
+        echo '<p><strong>JSON:</strong> '"$total_json"' arquivos</p>' >> index.html
+        echo '</div>' >> index.html
+        
+        # MOSTRAR CADA ARQUIVO
+        echo '<h2>📁 Arquivos HTML</h2>' >> index.html
+        
+        for html_file in projeto-completo/*.html; do
+          if [ -f "$html_file" ]; then
+            filename=$(basename "$html_file")
+            lines=$(wc -l < "$html_file")
+            
+            echo '<div class="file-section">' >> index.html
+            echo '<div class="file-header">' >> index.html
+            echo '<h3>📄 '"$filename"' ('"$lines"' linhas)</h3>' >> index.html
+            echo '</div>' >> index.html
+            echo '<div class="code-block">' >> index.html
+            echo '<pre>' >> index.html
+            
+            # Mostrar conteúdo com numeração
+            line_num=1
+            while IFS= read -r line; do
+              # Escapar HTML
+              safe_line=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+              echo '<span class="line-num">'"$line_num"'</span>'"$safe_line" >> index.html
+              echo '' >> index.html
+              line_num=$((line_num + 1))
+            done < "$html_file"
+            
+            echo '</pre>' >> index.html
+            echo '</div>' >> index.html
+            echo '</div>' >> index.html
+          fi
+        done
+        
+        # MOSTRAR JAVASCRIPT
+        echo '<h2>📜 Arquivos JavaScript</h2>' >> index.html
+        
+        # Main.js
+        if [ -f "projeto-completo/js/main.js" ]; then
+          echo '<div class="file-section">' >> index.html
+          echo '<div class="file-header">' >> index.html
+          echo '<h3>📜 js/main.js</h3>' >> index.html
+          echo '</div>' >> index.html
+          echo '<div class="code-block">' >> index.html
+          echo '<pre>' >> index.html
+          
+          line_num=1
+          while IFS= read -r line; do
+            safe_line=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+            echo '<span class="line-num">'"$line_num"'</span>'"$safe_line" >> index.html
+            echo '' >> index.html
+            line_num=$((line_num + 1))
+          done < "projeto-completo/js/main.js"
+          
+          echo '</pre>' >> index.html
+          echo '</div>' >> index.html
+          echo '</div>' >> index.html
+        fi
+        
+        # Módulos
+        echo '<h3>🧩 Módulos</h3>' >> index.html
+        
+        for js_file in projeto-completo/js/modules/*.js; do
+          if [ -f "$js_file" ]; then
+            filename=$(basename "$js_file")
+            lines=$(wc -l < "$js_file")
+            
+            echo '<div class="file-section">' >> index.html
+            echo '<div class="file-header">' >> index.html
+            echo '<h3>📜 js/modules/'"$filename"' ('"$lines"' linhas)</h3>' >> index.html
+            echo '</div>' >> index.html
+            echo '<div class="code-block">' >> index.html
+            echo '<pre>' >> index.html
+            
+            line_num=1
+            while IFS= read -r line; do
+              safe_line=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+              echo '<span class="line-num">'"$line_num"'</span>'"$safe_line" >> index.html
+              echo '' >> index.html
+              line_num=$((line_num + 1))
+            done < "$js_file"
+            
+            echo '</pre>' >> index.html
+            echo '</div>' >> index.html
+            echo '</div>' >> index.html
+          fi
+        done
+        
+        # Componentes
+        echo '<h3>🧩 Componentes</h3>' >> index.html
+        
+        for js_file in projeto-completo/js/components/*.js; do
+          if [ -f "$js_file" ]; then
+            filename=$(basename "$js_file")
+            lines=$(wc -l < "$js_file")
+            
+            echo '<div class="file-section">' >> index.html
+            echo '<div class="file-header">' >> index.html
+            echo '<h3>📜 js/components/'"$filename"' ('"$lines"' linhas)</h3>' >> index.html
+            echo '</div>' >> index.html
+            echo '<div class="code-block">' >> index.html
+            echo '<pre>' >> index.html
+            
+            line_num=1
+            while IFS= read -r line; do
+              safe_line=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+              echo '<span class="line-num">'"$line_num"'</span>'"$safe_line" >> index.html
+              echo '' >> index.html
+              line_num=$((line_num + 1))
+            done < "$js_file"
+            
+            echo '</pre>' >> index.html
+            echo '</div>' >> index.html
+            echo '</div>' >> index.html
+          fi
+        done
+        
+        # MOSTRAR CSS
+        echo '<h2>🎨 Arquivos CSS</h2>' >> index.html
+        
+        for css_file in projeto-completo/css/*.css; do
+          if [ -f "$css_file" ]; then
+            filename=$(basename "$css_file")
+            lines=$(wc -l < "$css_file")
+            
+            echo '<div class="file-section">' >> index.html
+            echo '<div class="file-header">' >> index.html
+            echo '<h3>🎨 css/'"$filename"' ('"$lines"' linhas)</h3>' >> index.html
+            echo '</div>' >> index.html
+            echo '<div class="code-block">' >> index.html
+            echo '<pre>' >> index.html
+            
+            line_num=1
+            while IFS= read -r line; do
+              safe_line=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+              echo '<span class="line-num">'"$line_num"'</span>'"$safe_line" >> index.html
+              echo '' >> index.html
+              line_num=$((line_num + 1))
+            done < "$css_file"
+            
+            echo '</pre>' >> index.html
+            echo '</div>' >> index.html
+            echo '</div>' >> index.html
+          fi
+        done
+        
+        # JSON
+        echo '<h2>📋 Arquivos JSON</h2>' >> index.html
+        
+        for json_file in projeto-completo/*.json; do
+          if [ -f "$json_file" ]; then
+            filename=$(basename "$json_file")
+            lines=$(wc -l < "$json_file")
+            
+            echo '<div class="file-section">' >> index.html
+            echo '<div class="file-header">' >> index.html
+            echo '<h3>📋 '"$filename"' ('"$lines"' linhas)</h3>' >> index.html
+            echo '</div>' >> index.html
+            echo '<div class="code-block">' >> index.html
+            echo '<pre>' >> index.html
+            
+            line_num=1
+            while IFS= read -r line; do
+              safe_line=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+              echo '<span class="line-num">'"$line_num"'</span>'"$safe_line" >> index.html
+              echo '' >> index.html
+              line_num=$((line_num + 1))
+            done < "$json_file"
+            
+            echo '</pre>' >> index.html
+            echo '</div>' >> index.html
+            echo '</div>' >> index.html
+          fi
+        done
+        
+        # FOOTER
+        echo '<footer style="text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid #30363d; color: #8b949e;">' >> index.html
+        echo '<p><strong>🗂️ Documentação Completa do Código Fonte</strong></p>' >> index.html
+        echo '<p>Gerado automaticamente em '"$DATE_NOW"'</p>' >> index.html
+        echo '<p>' >> index.html
+        echo '<a href="https://rclessa25-hub.github.io/imoveis-maceio/" style="color: #2ea44f; margin: 0 10px;">Site Principal</a>' >> index.html
+        echo '<a href="https://github.com/rclessa25-hub/imoveis-maceio" style="color: #2ea44f; margin: 0 10px;">Repositório</a>' >> index.html
+        echo '</p>' >> index.html
+        echo '</footer>' >> index.html
+        
+        echo '</div>' >> index.html
+        
+        # SCRIPT SIMPLES
+        echo '<script>' >> index.html
+        echo '// Destacar comentários' >> index.html
+        echo 'document.querySelectorAll("pre").forEach(pre => {' >> index.html
+        echo '  let html = pre.innerHTML;' >> index.html
+        echo '  html = html.replace(/\/\/.*/g, \'<span style="color: #6a737d">$&</span>\');' >> index.html
+        echo '  html = html.replace(/\/\*[\s\S]*?\*\//g, \'<span style="color: #6a737d">$&</span>\');' >> index.html
+        echo '  pre.innerHTML = html;' >> index.html
+        echo '});' >> index.html
+        echo '</script>' >> index.html
+        echo '</body>' >> index.html
+        echo '</html>' >> index.html
+        
+        echo "✅ Página criada com sucesso!"
+        echo "📊 Estatísticas: $total_files arquivos, $total_lines linhas"
+    
+    - name: 📦 Upload
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '.'
+    
+    - name: 🚀 Deploy
+      uses: actions/deploy-pages@v4
+    
+    - name: 🎉 Resultado
+      run: |
+        echo ""
+        echo "🎉 TODO O CÓDIGO PUBLICADO!"
+        echo "=========================="
+        echo ""
+        echo "🌐 ACESSE EM:"
+        echo "https://rclessa25-hub.github.io/reports-wlimoveis/"
+        echo ""
+        echo "✅ AGORA COM:"
+        echo "1. 📄 Todo o index.html (3.808 linhas)"
+        echo "2. 📜 Todos os módulos JavaScript"
+        echo "3. 🎨 Todos os arquivos CSS"
+        echo "4. 📋 Todos os arquivos JSON"
+        echo "5. 🔢 Numeração de linhas"
