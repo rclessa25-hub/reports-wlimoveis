@@ -50,15 +50,39 @@ jobs:
         MD_FILES=$(find fonte-completo -name "*.md" -type f 2>/dev/null || echo "")
         YML_FILES=$(find fonte-completo \( -name "*.yml" -o -name "*.yaml" \) -type f 2>/dev/null || echo "")
         
-        # Contar arquivos
-        HTML_COUNT=$(echo "$HTML_FILES" | grep -c "^" 2>/dev/null || echo "0")
-        JS_COUNT=$(echo "$JS_FILES" | grep -c "^" 2>/dev/null || echo "0")
-        CSS_COUNT=$(echo "$CSS_FILES" | grep -c "^" 2>/dev/null || echo "0")
-        JSON_COUNT=$(echo "$JSON_FILES" | grep -c "^" 2>/dev/null || echo "0")
-        MD_COUNT=$(echo "$MD_FILES" | grep -c "^" 2>/dev/null || echo "0")
-        YML_COUNT=$(echo "$YML_FILES" | grep -c "^" 2>/dev/null || echo "0")
+        # Contar arquivos - maneira segura
+        HTML_COUNT=0
+        JS_COUNT=0
+        CSS_COUNT=0
+        JSON_COUNT=0
+        MD_COUNT=0
+        YML_COUNT=0
         
-        # Calcular linhas totais
+        if [ -n "$HTML_FILES" ]; then
+          HTML_COUNT=$(echo "$HTML_FILES" | wc -l 2>/dev/null | awk '{print $1}' || echo "0")
+        fi
+        
+        if [ -n "$JS_FILES" ]; then
+          JS_COUNT=$(echo "$JS_FILES" | wc -l 2>/dev/null | awk '{print $1}' || echo "0")
+        fi
+        
+        if [ -n "$CSS_FILES" ]; then
+          CSS_COUNT=$(echo "$CSS_FILES" | wc -l 2>/dev/null | awk '{print $1}' || echo "0")
+        fi
+        
+        if [ -n "$JSON_FILES" ]; then
+          JSON_COUNT=$(echo "$JSON_FILES" | wc -l 2>/dev/null | awk '{print $1}' || echo "0")
+        fi
+        
+        if [ -n "$MD_FILES" ]; then
+          MD_COUNT=$(echo "$MD_FILES" | wc -l 2>/dev/null | awk '{print $1}' || echo "0")
+        fi
+        
+        if [ -n "$YML_FILES" ]; then
+          YML_COUNT=$(echo "$YML_FILES" | wc -l 2>/dev/null | awk '{print $1}' || echo "0")
+        fi
+        
+        # Calcular linhas totais - maneira segura
         TOTAL_LINES=0
         
         echo "📊 Contando linhas de HTML..."
@@ -112,29 +136,51 @@ jobs:
         echo "⚙️ YAML: $YML_COUNT arquivos"
         echo ""
         
-        # Contar funções totais - VERSÃO SIMPLIFICADA
+        # Contar funções totais - VERSÃO SIMPLIFICADA E SEGURA
         echo "🔍 Contando funções JavaScript..."
         TOTAL_FUNCTIONS=0
         
-        # Método simplificado: contar palavras-chave "function" e "=>"
+        # Função segura para contar
+        count_functions() {
+          local file="$1"
+          local count=0
+          
+          # Verificar se o arquivo existe
+          if [ ! -f "$file" ]; then
+            echo "0"
+            return
+          fi
+          
+          # Contagem segura usando múltiplos métodos
+          # 1. function nome()
+          local func1=$(grep -c -E '^[[:space:]]*function[[:space:]]+[[:alnum:]_]+' "$file" 2>/dev/null || echo "0")
+          func1=${func1:-0}
+          
+          # 2. const/let/var nome = () =>
+          local func2=$(grep -c -E '(const|let|var)[[:space:]]+[[:alnum:]_]+[[:space:]]*=[[:space:]]*.*=>' "$file" 2>/dev/null || echo "0")
+          func2=${func2:-0}
+          
+          # 3. class Nome
+          local func3=$(grep -c -E '^[[:space:]]*class[[:space:]]+[[:alnum:]_]+' "$file" 2>/dev/null || echo "0")
+          func3=${func3:-0}
+          
+          # 4. nome() {
+          local func4=$(grep -c -E '[[:alnum:]_]+[[:space:]]*\(.*\)[[:space:]]*\{' "$file" 2>/dev/null || echo "0")
+          func4=${func4:-0}
+          
+          # Somar todas as contagens
+          count=$((func1 + func2 + func3 + func4))
+          echo "$count"
+        }
+        
+        # Contar funções em todos os arquivos JS
         for js_file in $JS_FILES; do
-          # Contar "function nome()" e "function nome ()"
-          func_count1=$(grep -c -E "^[[:space:]]*function[[:space:]]+[[:alnum:]_]+" "$js_file" 2>/dev/null || echo "0")
-          
-          # Contar "const nome = () =>" e "let nome = () =>" e "var nome = () =>"
-          func_count2=$(grep -c -E "(const|let|var)[[:space:]]+[[:alnum:]_]+[[:space:]]*=[[:space:]]*.*=>" "$js_file" 2>/dev/null || echo "0")
-          
-          # Contar "class Nome"
-          func_count3=$(grep -c -E "^[[:space:]]*class[[:space:]]+[[:alnum:]_]+" "$js_file" 2>/dev/null || echo "0")
-          
-          # Contar métodos de classe "nome() {"
-          func_count4=$(grep -c -E "[[:alnum:]_]+[[:space:]]*\([^)]*\)[[:space:]]*{" "$js_file" 2>/dev/null || echo "0")
-          
-          file_functions=$((func_count1 + func_count2 + func_count3 + func_count4))
+          file_functions=$(count_functions "$js_file")
+          file_functions=${file_functions:-0}
           TOTAL_FUNCTIONS=$((TOTAL_FUNCTIONS + file_functions))
         done
         
-        # Criar arquivo HTML - usando múltiplos echos
+        # Criar arquivo HTML
         echo 'Criando estrutura HTML...'
         
         # Cabeçalho HTML
@@ -284,12 +330,9 @@ jobs:
           size_kb=$(( (size + 1023) / 1024 ))
           file_id=$(echo "$relative_path" | tr '/.' '_' | tr -cd '[:alnum:]_')
           
-          # Contar funções para este arquivo - VERSÃO SIMPLIFICADA
-          func_count1=$(grep -c -E "^[[:space:]]*function[[:space:]]+[[:alnum:]_]+" "$file" 2>/dev/null || echo "0")
-          func_count2=$(grep -c -E "(const|let|var)[[:space:]]+[[:alnum:]_]+[[:space:]]*=[[:space:]]*.*=>" "$file" 2>/dev/null || echo "0")
-          func_count3=$(grep -c -E "^[[:space:]]*class[[:space:]]+[[:alnum:]_]+" "$file" 2>/dev/null || echo "0")
-          func_count4=$(grep -c -E "[[:alnum:]_]+[[:space:]]*\([^)]*\)[[:space:]]*{" "$file" 2>/dev/null || echo "0")
-          functions=$((func_count1 + func_count2 + func_count3 + func_count4))
+          # Contar funções para este arquivo
+          functions=$(count_functions "$file")
+          functions=${functions:-0}
           
           echo '<div class="file-card">' >> index.html
           echo "<h3>📜 <span class=\"js\">$filename</span> <span class=\"file-size-badge\">${size_kb} KB</span></h3>" >> index.html
