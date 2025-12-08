@@ -1,0 +1,644 @@
+name: 📥 Extrair Código Fonte ver2
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  extract-code:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+    
+    - name: 📥 Clonar projeto principal
+      run: |
+        echo "📥 CLONANDO CÓDIGO FONTE..."
+        echo "========================="
+        
+        # Clonar o projeto principal
+        git clone https://github.com/rclessa25-hub/imoveis-maceio.git fonte-completo
+        
+        echo "✅ Projeto clonado com sucesso!"
+        echo "📁 Estrutura do projeto:"
+        find fonte-completo -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" \) | sort | head -20
+    
+    - name: 📝 Criar relatório com código real (TODAS AS LINHAS)
+      run: |
+        echo "📄 GERANDO RELATÓRIO COM CÓDIGO REAL..."
+        echo "======================================"
+        
+        DATE_NOW=$(date '+%d/%m/%Y às %H:%M:%S')
+        
+        echo "🔍 Calculando estatísticas EXATAS..."
+        echo "=================================="
+        
+        # Calcular estatísticas PRECISAS antes de gerar HTML
+        HTML_FILES=$(find fonte-completo -name "*.html" -type f)
+        JS_FILES=$(find fonte-completo -name "*.js" -type f)
+        CSS_FILES=$(find fonte-completo -name "*.css" -type f)
+        JSON_FILES=$(find fonte-completo -name "*.json" -type f)
+        
+        # Contar arquivos
+        HTML_COUNT=$(echo "$HTML_FILES" | grep -c "^" || echo "0")
+        JS_COUNT=$(echo "$JS_FILES" | grep -c "^" || echo "0")
+        CSS_COUNT=$(echo "$CSS_FILES" | grep -c "^" || echo "0")
+        JSON_COUNT=$(echo "$JSON_FILES" | grep -c "^" || echo "0")
+        
+        # Calcular linhas totais com PRECISÃO
+        TOTAL_LINES=0
+        echo "📊 Contando linhas de HTML..."
+        for file in $HTML_FILES; do
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          TOTAL_LINES=$((TOTAL_LINES + lines))
+        done
+        
+        echo "📊 Contando linhas de JavaScript..."
+        for file in $JS_FILES; do
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          TOTAL_LINES=$((TOTAL_LINES + lines))
+        done
+        
+        echo "📊 Contando linhas de CSS..."
+        for file in $CSS_FILES; do
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          TOTAL_LINES=$((TOTAL_LINES + lines))
+        done
+        
+        echo "📊 Contando linhas de JSON..."
+        for file in $JSON_FILES; do
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          TOTAL_LINES=$((TOTAL_LINES + lines))
+        done
+        
+        TOTAL_FILES=$((HTML_COUNT + JS_COUNT + CSS_COUNT + JSON_COUNT))
+        
+        echo ""
+        echo "📈 ESTATÍSTICAS EXATAS CALCULADAS:"
+        echo "================================="
+        echo "📁 Total de arquivos: $TOTAL_FILES"
+        echo "📊 Total de linhas: $TOTAL_LINES"
+        echo "🔸 HTML: $HTML_COUNT arquivos"
+        echo "🔹 JavaScript: $JS_COUNT arquivos"
+        echo "🎨 CSS: $CSS_COUNT arquivos"
+        echo "📋 JSON: $JSON_COUNT arquivos"
+        echo ""
+        
+        # Criar índice principal
+        echo '<!DOCTYPE html>' > index.html
+        echo '<html lang="pt-BR">' >> index.html
+        echo '<head>' >> index.html
+        echo '<meta charset="UTF-8">' >> index.html
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
+        echo '<title>📥 Código Fonte - Imóveis Maceió (COMPLETO)</title>' >> index.html
+        echo '<style>' >> index.html
+        echo 'body { font-family: Arial, sans-serif; background: #0d1117; color: white; margin: 0; padding: 20px; }' >> index.html
+        echo '.container { max-width: 1400px; margin: 0 auto; }' >> index.html
+        echo 'header { text-align: center; padding: 30px 0; border-bottom: 3px solid #2ea44f; margin-bottom: 30px; }' >> index.html
+        echo 'h1 { color: #2ea44f; font-size: 2.5em; }' >> index.html
+        echo 'h2 { color: #58a6ff; margin: 30px 0 20px; }' >> index.html
+        echo 'h3 { color: #f0f6fc; margin: 20px 0 15px; }' >> index.html
+        echo '.file-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin: 20px 0; }' >> index.html
+        echo '.file-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }' >> index.html
+        echo '.file-card h3 { margin-top: 0; color: #58a6ff; display: flex; align-items: center; gap: 10px; }' >> index.html
+        echo '.file-card .js { color: #f1e05a; }' >> index.html
+        echo '.file-card .css { color: #563d7c; }' >> index.html
+        echo '.file-card .html { color: #e34c26; }' >> index.html
+        echo '.file-card .json { color: #f1e05a; opacity: 0.8; }' >> index.html
+        echo '.file-stats { display: flex; gap: 15px; margin-top: 10px; font-size: 0.9em; color: #8b949e; }' >> index.html
+        echo '.file-stats span { display: flex; align-items: center; gap: 5px; }' >> index.html
+        echo '.functions-count { background: #1f6feb; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.85em; }' >> index.html
+        echo '.code-viewer { background: #000; padding: 20px; border-radius: 8px; margin: 20px 0; overflow-x: auto; }' >> index.html
+        echo 'pre { margin: 0; font-family: "Monaco", monospace; font-size: 0.9em; line-height: 1.4; }' >> index.html
+        echo '.line-number { color: #6a737d; margin-right: 15px; user-select: none; }' >> index.html
+        echo '.comment { color: #6a737d; }' >> index.html
+        echo '.string { color: #9ecbff; }' >> index.html
+        echo '.keyword { color: #ff7b72; }' >> index.html
+        echo '.function { color: #d2a8ff; }' >> index.html
+        echo 'a { color: #2ea44f; text-decoration: none; }' >> index.html
+        echo 'a:hover { text-decoration: underline; }' >> index.html
+        echo '.complete-badge { background: #238636; color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8em; margin-left: 10px; }' >> index.html
+        echo '.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }' >> index.html
+        echo '.summary-item { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px; text-align: center; }' >> index.html
+        echo '.summary-number { font-size: 2em; font-weight: bold; color: #2ea44f; margin: 10px 0; }' >> index.html
+        echo '.exact-count { font-size: 2.5em; font-weight: bold; color: #58a6ff; margin: 15px 0; }' >> index.html
+        echo '.project-structure { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 25px; margin: 30px 0; }' >> index.html
+        echo '.structure-tree { font-family: "Monaco", monospace; font-size: 0.95em; line-height: 1.8; }' >> index.html
+        echo '.structure-tree ul { list-style-type: none; padding-left: 20px; }' >> index.html
+        echo '.structure-tree li { position: relative; }' >> index.html
+        echo '.structure-tree li:before { content: "├── "; color: #6a737d; position: absolute; left: -20px; }' >> index.html
+        echo '.structure-tree li:last-child:before { content: "└── "; }' >> index.html
+        echo '.structure-tree .folder:before { content: "📁 "; }' >> index.html
+        echo '.structure-tree .file:before { content: "📄 "; }' >> index.html
+        echo '.structure-tree .file.js:before { content: "📜 "; }' >> index.html
+        echo '.structure-tree .file.css:before { content: "🎨 "; }' >> index.html
+        echo '.structure-tree .file.json:before { content: "📋 "; }' >> index.html
+        echo '</style>' >> index.html
+        echo '</head>' >> index.html
+        echo '<body>' >> index.html
+        echo '<div class="container">' >> index.html
+        echo '<header>' >> index.html
+        echo '<h1>📥 Código Fonte Completo <span class="complete-badge">SEM LIMITAÇÕES</span></h1>' >> index.html
+        echo '<p>Imóveis Maceió - Extração COMPLETA de TODAS as linhas</p>' >> index.html
+        echo '<p><strong>Gerado em:</strong> '"$DATE_NOW"'</p>' >> index.html
+        echo '</header>' >> index.html
+        
+        # SEÇÃO: ESTRUTURA DO PROJETO
+        echo '<div class="project-structure">' >> index.html
+        echo '<h2>🌳 Estrutura do Projeto</h2>' >> index.html
+        echo '<div class="structure-tree">' >> index.html
+        echo '<ul>' >> index.html
+        
+        # Função para gerar estrutura em árvore
+        generate_tree() {
+          local dir="$1"
+          local prefix="$2"
+          local items=($(find "$dir" -maxdepth 1 -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" -o -name "*.md" -o -name "*.yml" -o -name "*.yaml" | sort))
+          local dirs=($(find "$dir" -maxdepth 1 -type d ! -name "." ! -name "$dir" | sort))
+          
+          # Primeiro mostrar arquivos
+          for item in "${items[@]}"; do
+            if [ -f "$item" ]; then
+              local filename=$(basename "$item")
+              local extension="${filename##*.}"
+              
+              case $extension in
+                "html")
+                  echo '<li class="file html">'"$filename"'</li>' >> index.html
+                  ;;
+                "js")
+                  echo '<li class="file js">'"$filename"'</li>' >> index.html
+                  ;;
+                "css")
+                  echo '<li class="file css">'"$filename"'</li>' >> index.html
+                  ;;
+                "json"|"md"|"yml"|"yaml")
+                  echo '<li class="file json">'"$filename"'</li>' >> index.html
+                  ;;
+                *)
+                  echo '<li class="file">'"$filename"'</li>' >> index.html
+                  ;;
+              esac
+            fi
+          done
+          
+          # Depois mostrar diretórios
+          for subdir in "${dirs[@]}"; do
+            local dirname=$(basename "$subdir")
+            echo '<li class="folder">'"$dirname"'</li>' >> index.html
+          done
+        }
+        
+        # Estrutura principal
+        echo '<li class="folder">imoveis-maceio/</li>' >> index.html
+        echo '<ul>' >> index.html
+        
+        # Arquivos na raiz
+        for file in fonte-completo/*.html fonte-completo/*.json fonte-completo/*.md; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            extension="${filename##*.}"
+            
+            case $extension in
+              "html")
+                echo '<li class="file html">'"$filename"'</li>' >> index.html
+                ;;
+              "json")
+                echo '<li class="file json">'"$filename"'</li>' >> index.html
+                ;;
+              "md")
+                echo '<li class="file json">'"$filename"'</li>' >> index.html
+                ;;
+            esac
+          fi
+        done
+        
+        # Diretório css/
+        if [ -d "fonte-completo/css" ]; then
+          echo '<li class="folder">css/</li>' >> index.html
+          echo '<ul>' >> index.html
+          for css_file in fonte-completo/css/*.css; do
+            if [ -f "$css_file" ]; then
+              echo '<li class="file css">'$(basename "$css_file")'</li>' >> index.html
+            fi
+          done
+          echo '</ul>' >> index.html
+        fi
+        
+        # Diretório js/
+        if [ -d "fonte-completo/js" ]; then
+          echo '<li class="folder">js/</li>' >> index.html
+          echo '<ul>' >> index.html
+          
+          # Arquivos na raiz do js/
+          for js_file in fonte-completo/js/*.js; do
+            if [ -f "$js_file" ]; then
+              echo '<li class="file js">'$(basename "$js_file")'</li>' >> index.html
+            fi
+          done
+          
+          # Diretório modules/
+          if [ -d "fonte-completo/js/modules" ]; then
+            echo '<li class="folder">modules/</li>' >> index.html
+            echo '<ul>' >> index.html
+            for module in fonte-completo/js/modules/*.js; do
+              if [ -f "$module" ]; then
+                echo '<li class="file js">'$(basename "$module")'</li>' >> index.html
+              fi
+            done
+            echo '</ul>' >> index.html
+          fi
+          
+          # Diretório components/
+          if [ -d "fonte-completo/js/components" ]; then
+            echo '<li class="folder">components/</li>' >> index.html
+            echo '<ul>' >> index.html
+            for component in fonte-completo/js/components/*.js; do
+              if [ -f "$component" ]; then
+                echo '<li class="file js">'$(basename "$component")'</li>' >> index.html
+              fi
+            done
+            echo '</ul>' >> index.html
+          fi
+          
+          echo '</ul>' >> index.html
+        fi
+        
+        # Diretório assets/
+        if [ -d "fonte-completo/assets" ]; then
+          echo '<li class="folder">assets/</li>' >> index.html
+          echo '<ul>' >> index.html
+          
+          if [ -d "fonte-completo/assets/images" ]; then
+            echo '<li class="folder">images/</li>' >> index.html
+          fi
+          
+          if [ -d "fonte-completo/assets/fonts" ]; then
+            echo '<li class="folder">fonts/</li>' >> index.html
+          fi
+          
+          if [ -d "fonte-completo/assets/icons" ]; then
+            echo '<li class="folder">icons/</li>' >> index.html
+          fi
+          
+          echo '</ul>' >> index.html
+        fi
+        
+        # Diretório .github/
+        if [ -d "fonte-completo/.github" ]; then
+          echo '<li class="folder">.github/</li>' >> index.html
+          echo '<ul>' >> index.html
+          
+          if [ -d "fonte-completo/.github/workflows" ]; then
+            echo '<li class="folder">workflows/</li>' >> index.html
+            echo '<ul>' >> index.html
+            for workflow in fonte-completo/.github/workflows/*.yml fonte-completo/.github/workflows/*.yaml; do
+              if [ -f "$workflow" ]; then
+                echo '<li class="file json">'$(basename "$workflow")'</li>' >> index.html
+              fi
+            done
+            echo '</ul>' >> index.html
+          fi
+          
+          echo '</ul>' >> index.html
+        fi
+        
+        echo '</ul>' >> index.html
+        echo '</ul>' >> index.html
+        echo '</div>' >> index.html
+        echo '</div>' >> index.html
+        
+        # LISTA DE ARQUIVOS COM CONTAGEM DE FUNÇÕES
+        echo '<h2>📁 Lista de Arquivos Extraídos (COMPLETO)</h2>' >> index.html
+        echo '<div class="file-list">' >> index.html
+        
+        # Função para contar funções em arquivos JS
+        count_functions() {
+          local file="$1"
+          if [[ "$file" == *.js ]]; then
+            # Contar function declarations, arrow functions, e métodos
+            local functions=$(grep -c -E "(^|\s)function\s+\w+|const\s+\w+\s*=\s*\([^)]*\)\s*=>|let\s+\w+\s*=\s*\([^)]*\)\s*=>|var\s+\w+\s*=\s*\([^)]*\)\s*=>|\w+\s*\([^)]*\)\s*\{[^}]*\}" "$file" 2>/dev/null || echo "0")
+            echo "$functions"
+          else
+            echo "0"
+          fi
+        }
+        
+        # Processar todos os arquivos HTML
+        echo "$HTML_FILES" | while read -r file; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            relative_path=${file#fonte-completo/}
+            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+            size=$(wc -c < "$file" 2>/dev/null || echo "0")
+            size_kb=$((size / 1024))
+            
+            echo '<div class="file-card">' >> index.html
+            echo '<h3>📄 <span class="html">'"$filename"'</span></h3>' >> index.html
+            echo '<p><strong>Local:</strong> '"$(dirname "$relative_path")"'</p>' >> index.html
+            echo '<p><strong>Linhas:</strong> '"$lines"'</p>' >> index.html
+            echo '<p><strong>Funções:</strong> N/A (HTML)</p>' >> index.html
+            echo '<div class="file-stats">' >> index.html
+            echo '<span><i class="fas fa-bars"></i> '"$lines"' linhas</span>' >> index.html
+            echo '<span><i class="fas fa-weight-hanging"></i> '"$size_kb"' KB</span>' >> index.html
+            echo '</div>' >> index.html
+            echo '<p><a href="#html-'"$(echo "$relative_path" | sed 's/[^a-zA-Z0-9]/-/g')"'">Ver código COMPLETO →</a></p>' >> index.html
+            echo '</div>' >> index.html
+          fi
+        done
+        
+        # Processar todos os arquivos JS
+        echo "$JS_FILES" | while read -r file; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            relative_path=${file#fonte-completo/}
+            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+            size=$(wc -c < "$file" 2>/dev/null || echo "0")
+            size_kb=$((size / 1024))
+            functions=$(count_functions "$file")
+            
+            # Determinar categoria
+            if [[ "$relative_path" == *"modules"* ]]; then
+              category="Módulo"
+            elif [[ "$relative_path" == *"components"* ]]; then
+              category="Componente"
+            else
+              category="JavaScript"
+            fi
+            
+            echo '<div class="file-card">' >> index.html
+            echo '<h3>📜 <span class="js">'"$filename"'</span> <small style="color: #8b949e;">('"$category"')</small></h3>' >> index.html
+            echo '<p><strong>Local:</strong> '"$(dirname "$relative_path")"'</p>' >> index.html
+            echo '<p><strong>Linhas:</strong> '"$lines"'</p>' >> index.html
+            echo '<p><strong>Funções:</strong> <span class="functions-count">'"$functions"' funções</span></p>' >> index.html
+            echo '<div class="file-stats">' >> index.html
+            echo '<span><i class="fas fa-bars"></i> '"$lines"' linhas</span>' >> index.html
+            echo '<span><i class="fas fa-code"></i> '"$functions"' funções</span>' >> index.html
+            echo '<span><i class="fas fa-weight-hanging"></i> '"$size_kb"' KB</span>' >> index.html
+            echo '</div>' >> index.html
+            echo '<p><a href="#js-'"$(echo "$relative_path" | sed 's/[^a-zA-Z0-9]/-/g')"'">Ver código COMPLETO →</a></p>' >> index.html
+            echo '</div>' >> index.html
+          fi
+        done
+        
+        # Processar todos os arquivos CSS
+        echo "$CSS_FILES" | while read -r file; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            relative_path=${file#fonte-completo/}
+            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+            size=$(wc -c < "$file" 2>/dev/null || echo "0")
+            size_kb=$((size / 1024))
+            
+            echo '<div class="file-card">' >> index.html
+            echo '<h3>🎨 <span class="css">'"$filename"'</span></h3>' >> index.html
+            echo '<p><strong>Local:</strong> '"$(dirname "$relative_path")"'</p>' >> index.html
+            echo '<p><strong>Linhas:</strong> '"$lines"'</p>' >> index.html
+            echo '<p><strong>Funções:</strong> N/A (CSS)</p>' >> index.html
+            echo '<div class="file-stats">' >> index.html
+            echo '<span><i class="fas fa-bars"></i> '"$lines"' linhas</span>' >> index.html
+            echo '<span><i class="fas fa-weight-hanging"></i> '"$size_kb"' KB</span>' >> index.html
+            echo '</div>' >> index.html
+            echo '<p><a href="#css-'"$(echo "$relative_path" | sed 's/[^a-zA-Z0-9]/-/g')"'">Ver código COMPLETO →</a></p>' >> index.html
+            echo '</div>' >> index.html
+          fi
+        done
+        
+        # Processar todos os arquivos JSON
+        echo "$JSON_FILES" | while read -r file; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            relative_path=${file#fonte-completo/}
+            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+            size=$(wc -c < "$file" 2>/dev/null || echo "0")
+            size_kb=$((size / 1024))
+            
+            echo '<div class="file-card">' >> index.html
+            echo '<h3>📋 <span class="json">'"$filename"'</span></h3>' >> index.html
+            echo '<p><strong>Local:</strong> '"$(dirname "$relative_path")"'</p>' >> index.html
+            echo '<p><strong>Linhas:</strong> '"$lines"'</p>' >> index.html
+            echo '<p><strong>Funções:</strong> N/A (JSON)</p>' >> index.html
+            echo '<div class="file-stats">' >> index.html
+            echo '<span><i class="fas fa-bars"></i> '"$lines"' linhas</span>' >> index.html
+            echo '<span><i class="fas fa-weight-hanging"></i> '"$size_kb"' KB</span>' >> index.html
+            echo '</div>' >> index.html
+            echo '<p><a href="#json-'"$(echo "$relative_path" | sed 's/[^a-zA-Z0-9]/-/g')"'">Ver código COMPLETO →</a></p>' >> index.html
+            echo '</div>' >> index.html
+          fi
+        done
+        
+        echo '</div>' >> index.html
+        
+        # RESUMO PRECISO
+        echo '<div style="background: #161b22; padding: 25px; border-radius: 10px; margin: 40px 0;">' >> index.html
+        echo '<h2>📊 Resumo PRECISO da Extração</h2>' >> index.html
+        
+        echo '<div style="text-align: center; margin: 30px 0;">' >> index.html
+        echo '<div class="exact-count">'"$TOTAL_LINES"'</div>' >> index.html
+        echo '<p><strong>Linhas totais EXATAS</strong></p>' >> index.html
+        echo '</div>' >> index.html
+        
+        # Contar funções totais
+        TOTAL_FUNCTIONS=0
+        for js_file in $JS_FILES; do
+          functions=$(count_functions "$js_file")
+          TOTAL_FUNCTIONS=$((TOTAL_FUNCTIONS + functions))
+        done
+        
+        echo '<div class="summary-grid">' >> index.html
+        echo '<div class="summary-item">' >> index.html
+        echo '<h4>📁 Total de Arquivos</h4>' >> index.html
+        echo '<div class="summary-number">'"$TOTAL_FILES"'</div>' >> index.html
+        echo '<p>Todos os arquivos extraídos</p>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '<div class="summary-item">' >> index.html
+        echo '<h4>⚡ Funções JS</h4>' >> index.html
+        echo '<div class="summary-number">'"$TOTAL_FUNCTIONS"'</div>' >> index.html
+        echo '<p>Total de funções</p>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '<div class="summary-item">' >> index.html
+        echo '<h4>📄 HTML</h4>' >> index.html
+        echo '<div class="summary-number">'"$HTML_COUNT"'</div>' >> index.html
+        echo '<p>Arquivos</p>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '<div class="summary-item">' >> index.html
+        echo '<h4>📜 JavaScript</h4>' >> index.html
+        echo '<div class="summary-number">'"$JS_COUNT"'</div>' >> index.html
+        echo '<p>Arquivos</p>' >> index.html
+        echo '</div>' >> index.html
+        
+        # Contar módulos e componentes JS
+        MODULES_COUNT=$(find fonte-completo -path "*/modules/*.js" -type f | wc -l)
+        COMPONENTS_COUNT=$(find fonte-completo -path "*/components/*.js" -type f | wc -l)
+        
+        echo '<div class="summary-item">' >> index.html
+        echo '<h4>🧩 Módulos JS</h4>' >> index.html
+        echo '<div class="summary-number">'"$MODULES_COUNT"'</div>' >> index.html
+        echo '<p>Arquivos em modules/</p>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '<div class="summary-item">' >> index.html
+        echo '<h4>⚙️ Componentes</h4>' >> index.html
+        echo '<div class="summary-number">'"$COMPONENTS_COUNT"'</div>' >> index.html
+        echo '<p>Arquivos em components/</p>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '<div class="summary-item">' >> index.html
+        echo '<h4>🎨 Arquivos CSS</h4>' >> index.html
+        echo '<div class="summary-number">'"$CSS_COUNT"'</div>' >> index.html
+        echo '<p>Arquivos</p>' >> index.html
+        echo '</div>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '<p><strong>✅ Status:</strong> <span style="color: #2ea44f; font-weight: bold;">Extração COMPLETA e PRECISA</span></p>' >> index.html
+        echo '<p><strong>Última atualização:</strong> '"$DATE_NOW"'</p>' >> index.html
+        echo '</div>' >> index.html
+        
+        # CÓDIGO COMPLETO DOS ARQUIVOS - TODAS AS LINHAS
+        echo '<h2>📜 Código Fonte COMPLETO (TODAS AS LINHAS)</h2>' >> index.html
+        
+        # Processar e mostrar código de cada arquivo
+        ALL_FILES=$(find fonte-completo -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" \) | sort)
+        
+        echo "$ALL_FILES" | while read -r file; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            relative_path=${file#fonte-completo/}
+            file_id=$(echo "$relative_path" | sed 's/[^a-zA-Z0-9]/-/g')
+            extension="${filename##*.}"
+            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+            
+            # Determinar ícone e classe
+            case $extension in
+              "html")
+                icon="📄"
+                class="html"
+                ;;
+              "js")
+                icon="📜"
+                class="js"
+                ;;
+              "css")
+                icon="🎨"
+                class="css"
+                ;;
+              "json")
+                icon="📋"
+                class="json"
+                ;;
+              *)
+                icon="📁"
+                class=""
+                ;;
+            esac
+            
+            echo '<div class="code-viewer" id="'"$class"'-'"$file_id"'">' >> index.html
+            echo '<h3>'"$icon $relative_path <span class=\"complete-badge\">$lines linhas</span>"'</h3>' >> index.html
+            echo '<pre>' >> index.html
+            
+            # LER E MOSTRAR TODAS AS LINHAS - SEM LIMITE
+            cat "$file" | cat -n | while read num line; do
+              # Escapar HTML
+              line_escaped=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+              echo '<span class="line-number">'"$num"'</span>'"$line_escaped<br/>" >> index.html
+            done
+            
+            echo '</pre>' >> index.html
+            echo '</div>' >> index.html
+          fi
+        done
+        
+        # FOOTER
+        echo '<footer style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #30363d; color: #8b949e;">' >> index.html
+        echo '<p><strong>📥 Extração COMPLETA e PRECISA do Código Fonte</strong></p>' >> index.html
+        echo '<p>✅ Contagem EXATA: '"$TOTAL_LINES"' linhas e '"$TOTAL_FUNCTIONS"' funções</p>' >> index.html
+        echo '<p>Gerado automaticamente em '"$DATE_NOW"'</p>' >> index.html
+        echo '<div style="margin-top: 15px;">' >> index.html
+        echo '<a href="https://rclessa25-hub.github.io/imoveis-maceio/" style="color: #2ea44f; margin: 0 10px;">' >> index.html
+        echo '<i class="fas fa-external-link-alt"></i> Site Principal' >> index.html
+        echo '</a>' >> index.html
+        echo '<a href="https://github.com/rclessa25-hub/imoveis-maceio" style="color: #2ea44f; margin: 0 10px;">' >> index.html
+        echo '<i class="fab fa-github"></i> Repositório Original' >> index.html
+        echo '</a>' >> index.html
+        echo '</div>' >> index.html
+        echo '</footer>' >> index.html
+        
+        echo '</div>' >> index.html
+        
+        # Script para destaque de sintaxe
+        echo '<script>' >> index.html
+        echo 'const keywords = ["function", "const", "let", "var", "class", "import", "export", "async", "await", "return", "if", "else", "for", "while", "try", "catch", "throw"];' >> index.html
+        echo 'document.querySelectorAll(".code-viewer pre").forEach(pre => {' >> index.html
+        echo '    let html = pre.innerHTML;' >> index.html
+        echo '    keywords.forEach(keyword => {' >> index.html
+        echo '        const regex = new RegExp(`\\\\b${keyword}\\\\b`, "g");' >> index.html
+        echo '        html = html.replace(regex, `<span class="keyword">${keyword}</span>`);' >> index.html
+        echo '    });' >> index.html
+        echo '    html = html.replace(/(\\w+)\\s*\\(/g, `<span class="function">$1</span>(`);' >> index.html
+        echo '    pre.innerHTML = html;' >> index.html
+        echo '});' >> index.html
+        echo '</script>' >> index.html
+        echo '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">' >> index.html
+        echo '</body>' >> index.html
+        echo '</html>' >> index.html
+        
+        echo "✅ Relatório COMPLETO com estrutura e funções gerado!"
+        
+        # Mostrar estatísticas DETALHADAS
+        echo ""
+        echo "📈 ESTATÍSTICAS PRECISAS:"
+        echo "========================"
+        echo "📁 Total de arquivos: $TOTAL_FILES"
+        echo "📊 Total de linhas (EXATO): $TOTAL_LINES"
+        echo "⚡ Total de funções JS: $TOTAL_FUNCTIONS"
+        echo "🔸 HTML: $HTML_COUNT arquivos"
+        echo "🔹 JavaScript: $JS_COUNT arquivos"
+        echo "  ├─ Módulos: $MODULES_COUNT"
+        echo "  └─ Componentes: $COMPONENTS_COUNT"
+        echo "🎨 CSS: $CSS_COUNT arquivos"
+        echo "📋 JSON: $JSON_COUNT arquivos"
+        echo ""
+        echo "🌳 Estrutura do projeto incluída no relatório"
+    
+    - name: 📦 Upload para GitHub Pages
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '.'
+    
+    - name: 🚀 Deploy
+      uses: actions/deploy-pages@v4
+    
+    - name: 🎉 Mostrar resultado COMPLETO
+      run: |
+        echo ""
+        echo "🎉 CÓDIGO FONTE EXTRAÍDO COM ESTRUTURA E FUNÇÕES!"
+        echo "=================================================="
+        echo ""
+        echo "🌐 ACESSE EM:"
+        echo "https://rclessa25-hub.github.io/reports-wlimoveis/"
+        echo ""
+        echo "📊 NOVAS FUNCIONALIDADES:"
+        echo "1. ✅ Estrutura do projeto em árvore"
+        echo "2. ✅ Contagem de funções por arquivo JS"
+        echo "3. ✅ Total de funções no resumo"
+        echo "4. ✅ Layout melhorado dos cards"
+        echo "5. ✅ Ícones específicos por tipo"
+        echo "6. ✅ Navegação visual melhorada"
+        echo ""
+        echo "📈 O relatório agora inclui:"
+        echo "• 🌳 Estrutura completa do projeto"
+        echo "• ⚡ Contagem de funções JavaScript"
+        echo "• 📊 Estatísticas detalhadas"
+        echo "• 🔍 Código completo sem limitações"
