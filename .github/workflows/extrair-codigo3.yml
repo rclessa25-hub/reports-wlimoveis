@@ -34,6 +34,11 @@ jobs:
     
     - name: 📝 Criar relatório COMPLETO (TODAS AS LINHAS)
       run: |
+        # Função para escapar HTML
+        escape_html() {
+          echo "$1" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g'
+        }
+        
         echo "📄 GERANDO RELATÓRIO COMPLETO COM TODAS AS LINHAS..."
         echo "==================================================="
         
@@ -43,94 +48,58 @@ jobs:
         echo "=================================="
         
         # Encontrar arquivos
-        HTML_FILES=$(find fonte-completo -name "*.html" -type f 2>/dev/null || true)
-        JS_FILES=$(find fonte-completo -name "*.js" -type f 2>/dev/null || true)
-        CSS_FILES=$(find fonte-completo -name "*.css" -type f 2>/dev/null || true)
-        JSON_FILES=$(find fonte-completo -name "*.json" -type f 2>/dev/null || true)
-        MD_FILES=$(find fonte-completo -name "*.md" -type f 2>/dev/null || true)
-        YML_FILES=$(find fonte-completo \( -name "*.yml" -o -name "*.yaml" \) -type f 2>/dev/null || true)
+        HTML_FILES=$(find fonte-completo -name "*.html" -type f 2>/dev/null || echo "")
+        JS_FILES=$(find fonte-completo -name "*.js" -type f 2>/dev/null || echo "")
+        CSS_FILES=$(find fonte-completo -name "*.css" -type f 2>/dev/null || echo "")
+        JSON_FILES=$(find fonte-completo -name "*.json" -type f 2>/dev/null || echo "")
+        MD_FILES=$(find fonte-completo -name "*.md" -type f 2>/dev/null || echo "")
+        YML_FILES=$(find fonte-completo \( -name "*.yml" -o -name "*.yaml" \) -type f 2>/dev/null || echo "")
         
         # Contar arquivos - forma segura
-        HTML_COUNT=0
-        JS_COUNT=0
-        CSS_COUNT=0
-        JSON_COUNT=0
-        MD_COUNT=0
-        YML_COUNT=0
-        
-        if [ -n "$HTML_FILES" ]; then
-          HTML_COUNT=$(echo "$HTML_FILES" | wc -l)
-        fi
-        
-        if [ -n "$JS_FILES" ]; then
-          JS_COUNT=$(echo "$JS_FILES" | wc -l)
-        fi
-        
-        if [ -n "$CSS_FILES" ]; then
-          CSS_COUNT=$(echo "$CSS_FILES" | wc -l)
-        fi
-        
-        if [ -n "$JSON_FILES" ]; then
-          JSON_COUNT=$(echo "$JSON_FILES" | wc -l)
-        fi
-        
-        if [ -n "$MD_FILES" ]; then
-          MD_COUNT=$(echo "$MD_FILES" | wc -l)
-        fi
-        
-        if [ -n "$YML_FILES" ]; then
-          YML_COUNT=$(echo "$YML_FILES" | wc -l)
-        fi
+        HTML_COUNT=$(echo "$HTML_FILES" | grep -c "^" 2>/dev/null || echo "0")
+        JS_COUNT=$(echo "$JS_FILES" | grep -c "^" 2>/dev/null || echo "0")
+        CSS_COUNT=$(echo "$CSS_FILES" | grep -c "^" 2>/dev/null || echo "0")
+        JSON_COUNT=$(echo "$JSON_FILES" | grep -c "^" 2>/dev/null || echo "0")
+        MD_COUNT=$(echo "$MD_FILES" | grep -c "^" 2>/dev/null || echo "0")
+        YML_COUNT=$(echo "$YML_FILES" | grep -c "^" 2>/dev/null || echo "0")
         
         # Calcular linhas totais
         TOTAL_LINES=0
         
         echo "📊 Contando linhas de HTML..."
         for file in $HTML_FILES; do
-          if [ -f "$file" ]; then
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            TOTAL_LINES=$((TOTAL_LINES + lines))
-          fi
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          TOTAL_LINES=$((TOTAL_LINES + lines))
         done
         
         echo "📊 Contando linhas de JavaScript..."
         for file in $JS_FILES; do
-          if [ -f "$file" ]; then
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            TOTAL_LINES=$((TOTAL_LINES + lines))
-          fi
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          TOTAL_LINES=$((TOTAL_LINES + lines))
         done
         
         echo "📊 Contando linhas de CSS..."
         for file in $CSS_FILES; do
-          if [ -f "$file" ]; then
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            TOTAL_LINES=$((TOTAL_LINES + lines))
-          fi
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          TOTAL_LINES=$((TOTAL_LINES + lines))
         done
         
         echo "📊 Contando linhas de JSON..."
         for file in $JSON_FILES; do
-          if [ -f "$file" ]; then
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            TOTAL_LINES=$((TOTAL_LINES + lines))
-          fi
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          TOTAL_LINES=$((TOTAL_LINES + lines))
         done
         
         echo "📊 Contando linhas de Markdown..."
         for file in $MD_FILES; do
-          if [ -f "$file" ]; then
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            TOTAL_LINES=$((TOTAL_LINES + lines))
-          fi
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          TOTAL_LINES=$((TOTAL_LINES + lines))
         done
         
         echo "📊 Contando linhas de YAML..."
         for file in $YML_FILES; do
-          if [ -f "$file" ]; then
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            TOTAL_LINES=$((TOTAL_LINES + lines))
-          fi
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          TOTAL_LINES=$((TOTAL_LINES + lines))
         done
         
         TOTAL_FILES=$((HTML_COUNT + JS_COUNT + CSS_COUNT + JSON_COUNT + MD_COUNT + YML_COUNT))
@@ -221,7 +190,7 @@ a:hover { text-decoration: underline; }
 <body>
 HTML_EOF
         
-        # Botões de navegação
+        # Continuar escrevendo no arquivo HTML
         echo '<div class="nav-buttons">' >> index.html
         echo '<a href="#structure">🌳 Estrutura</a>' >> index.html
         echo '<a href="#files">📁 Arquivos</a>' >> index.html
@@ -250,11 +219,8 @@ HTML_EOF
         echo "🔍 Contando funções JavaScript..."
         TOTAL_FUNCTIONS=0
         for js_file in $JS_FILES; do
-          if [ -f "$js_file" ]; then
-            # Contagem segura de funções
-            functions=$(grep -E "(^|\s)(function\s+\w+|const\s+\w+\s*=\s*(async\s*)?\([^)]*\)\s*=>|let\s+\w+\s*=\s*(async\s*)?\([^)]*\)\s*=>|var\s+\w+\s*=\s*(async\s*)?\([^)]*\)\s*=>|class\s+\w+)" "$js_file" 2>/dev/null | wc -l || echo "0")
-            TOTAL_FUNCTIONS=$((TOTAL_FUNCTIONS + functions))
-          fi
+          functions=$(grep -E "(^|\s)(function\s+\w+|const\s+\w+\s*=\s*(async\s*)?\([^)]*\)\s*=>|let\s+\w+\s*=\s*(async\s*)?\([^)]*\)\s*=>|var\s+\w+\s*=\s*(async\s*)?\([^)]*\)\s*=>|class\s+\w+)" "$js_file" 2>/dev/null | wc -l || echo "0")
+          TOTAL_FUNCTIONS=$((TOTAL_FUNCTIONS + functions))
         done
         
         # Contar módulos e componentes JS
@@ -328,119 +294,111 @@ HTML_EOF
         
         # Processar todos os arquivos HTML
         for file in $HTML_FILES; do
-          if [ -f "$file" ]; then
-            filename=$(basename "$file")
-            relative_path=${file#fonte-completo/}
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            size=$(stat -c%s "$file" 2>/dev/null || wc -c < "$file" 2>/dev/null || echo "0")
-            size_kb=$(( (size + 1023) / 1024 ))
-            file_id=$(echo "$relative_path" | tr '/.' '_')
-            
-            echo '<div class="file-card">' >> index.html
-            echo "<h3>🌐 <span class=\"html\">$filename</span> <span class=\"file-size-badge\">${size_kb} KB</span></h3>" >> index.html
-            echo "<p><strong>📍 Local:</strong> $(dirname "$relative_path")</p>" >> index.html
-            echo "<p><strong>📏 Linhas:</strong> $lines</p>" >> index.html
-            echo '<div class="file-stats">' >> index.html
-            echo '<span><i class="fas fa-file-code"></i> HTML</span>' >> index.html
-            echo "<span><i class=\"fas fa-bars\"></i> $lines linhas</span>" >> index.html
-            echo "<span><i class=\"fas fa-weight-hanging\"></i> ${size_kb} KB</span>" >> index.html
-            echo '</div>' >> index.html
-            echo "<p><a href=\"#html_${file_id}\">📄 Ver código COMPLETO →</a></p>" >> index.html
-            echo '</div>' >> index.html
-          fi
+          filename=$(basename "$file")
+          relative_path=${file#fonte-completo/}
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          size=$(stat -c%s "$file" 2>/dev/null || wc -c < "$file" 2>/dev/null || echo "0")
+          size_kb=$(( (size + 1023) / 1024 ))
+          file_id=$(echo "$relative_path" | tr '/.' '_' | tr -cd '[:alnum:]_')
+          
+          echo '<div class="file-card">' >> index.html
+          echo "<h3>🌐 <span class=\"html\">$filename</span> <span class=\"file-size-badge\">${size_kb} KB</span></h3>" >> index.html
+          echo "<p><strong>📍 Local:</strong> $(dirname "$relative_path")</p>" >> index.html
+          echo "<p><strong>📏 Linhas:</strong> $lines</p>" >> index.html
+          echo '<div class="file-stats">' >> index.html
+          echo '<span><i class="fas fa-file-code"></i> HTML</span>' >> index.html
+          echo "<span><i class=\"fas fa-bars\"></i> $lines linhas</span>" >> index.html
+          echo "<span><i class=\"fas fa-weight-hanging\"></i> ${size_kb} KB</span>" >> index.html
+          echo '</div>' >> index.html
+          echo "<p><a href=\"#html_${file_id}\">📄 Ver código COMPLETO →</a></p>" >> index.html
+          echo '</div>' >> index.html
         done
         
         # Processar todos os arquivos JS
         for file in $JS_FILES; do
-          if [ -f "$file" ]; then
-            filename=$(basename "$file")
-            relative_path=${file#fonte-completo/}
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            size=$(stat -c%s "$file" 2>/dev/null || wc -c < "$file" 2>/dev/null || echo "0")
-            size_kb=$(( (size + 1023) / 1024 ))
-            file_id=$(echo "$relative_path" | tr '/.' '_')
-            
-            # Contar funções para este arquivo
-            functions=$(grep -E "(^|\s)(function\s+\w+|const\s+\w+\s*=\s*(async\s*)?\([^)]*\)\s*=>|let\s+\w+\s*=\s*(async\s*)?\([^)]*\)\s*=>|var\s+\w+\s*=\s*(async\s*)?\([^)]*\)\s*=>|class\s+\w+)" "$file" 2>/dev/null | wc -l || echo "0")
-            
-            # Determinar categoria
-            category="JS"
-            if [[ "$relative_path" == *"modules"* ]]; then
-              category="Módulo"
-            elif [[ "$relative_path" == *"components"* ]]; then
-              category="Componente"
-            fi
-            
-            echo '<div class="file-card">' >> index.html
-            echo "<h3>📜 <span class=\"js\">$filename</span> <span class=\"file-size-badge\">${size_kb} KB</span></h3>" >> index.html
-            echo "<p><strong>📍 Local:</strong> $(dirname "$relative_path")</p>" >> index.html
-            echo "<p><strong>📏 Linhas:</strong> $lines</p>" >> index.html
-            
-            if [ "$functions" -gt 0 ]; then
-              echo "<p><strong>⚡ Funções:</strong> <span class=\"functions-count\">$functions funções</span></p>" >> index.html
-            fi
-            
-            echo '<div class="file-stats">' >> index.html
-            echo "<span><i class=\"fas fa-file-code\"></i> $category</span>" >> index.html
-            echo "<span><i class=\"fas fa-bars\"></i> $lines linhas</span>" >> index.html
-            
-            if [ "$functions" -gt 0 ]; then
-              echo "<span><i class=\"fas fa-code\"></i> $functions funções</span>" >> index.html
-            fi
-            
-            echo "<span><i class=\"fas fa-weight-hanging\"></i> ${size_kb} KB</span>" >> index.html
-            echo '</div>' >> index.html
-            echo "<p><a href=\"#js_${file_id}\">📜 Ver código COMPLETO →</a></p>" >> index.html
-            echo '</div>' >> index.html
+          filename=$(basename "$file")
+          relative_path=${file#fonte-completo/}
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          size=$(stat -c%s "$file" 2>/dev/null || wc -c < "$file" 2>/dev/null || echo "0")
+          size_kb=$(( (size + 1023) / 1024 ))
+          file_id=$(echo "$relative_path" | tr '/.' '_' | tr -cd '[:alnum:]_')
+          
+          # Contar funções para este arquivo
+          functions=$(grep -E "(^|\s)(function\s+\w+|const\s+\w+\s*=\s*(async\s*)?\([^)]*\)\s*=>|let\s+\w+\s*=\s*(async\s*)?\([^)]*\)\s*=>|var\s+\w+\s*=\s*(async\s*)?\([^)]*\)\s*=>|class\s+\w+)" "$file" 2>/dev/null | wc -l || echo "0")
+          
+          # Determinar categoria
+          category="JS"
+          if [[ "$relative_path" == *"modules"* ]]; then
+            category="Módulo"
+          elif [[ "$relative_path" == *"components"* ]]; then
+            category="Componente"
           fi
+          
+          echo '<div class="file-card">' >> index.html
+          echo "<h3>📜 <span class=\"js\">$filename</span> <span class=\"file-size-badge\">${size_kb} KB</span></h3>" >> index.html
+          echo "<p><strong>📍 Local:</strong> $(dirname "$relative_path")</p>" >> index.html
+          echo "<p><strong>📏 Linhas:</strong> $lines</p>" >> index.html
+          
+          if [ "$functions" -gt 0 ]; then
+            echo "<p><strong>⚡ Funções:</strong> <span class=\"functions-count\">$functions funções</span></p>" >> index.html
+          fi
+          
+          echo '<div class="file-stats">' >> index.html
+          echo "<span><i class=\"fas fa-file-code\"></i> $category</span>" >> index.html
+          echo "<span><i class=\"fas fa-bars\"></i> $lines linhas</span>" >> index.html
+          
+          if [ "$functions" -gt 0 ]; then
+            echo "<span><i class=\"fas fa-code\"></i> $functions funções</span>" >> index.html
+          fi
+          
+          echo "<span><i class=\"fas fa-weight-hanging\"></i> ${size_kb} KB</span>" >> index.html
+          echo '</div>' >> index.html
+          echo "<p><a href=\"#js_${file_id}\">📜 Ver código COMPLETO →</a></p>" >> index.html
+          echo '</div>' >> index.html
         done
         
         # Processar todos os arquivos CSS
         for file in $CSS_FILES; do
-          if [ -f "$file" ]; then
-            filename=$(basename "$file")
-            relative_path=${file#fonte-completo/}
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            size=$(stat -c%s "$file" 2>/dev/null || wc -c < "$file" 2>/dev/null || echo "0")
-            size_kb=$(( (size + 1023) / 1024 ))
-            file_id=$(echo "$relative_path" | tr '/.' '_')
-            
-            echo '<div class="file-card">' >> index.html
-            echo "<h3>🎨 <span class=\"css\">$filename</span> <span class=\"file-size-badge\">${size_kb} KB</span></h3>" >> index.html
-            echo "<p><strong>📍 Local:</strong> $(dirname "$relative_path")</p>" >> index.html
-            echo "<p><strong>📏 Linhas:</strong> $lines</p>" >> index.html
-            echo '<div class="file-stats">' >> index.html
-            echo '<span><i class="fas fa-file-code"></i> CSS</span>' >> index.html
-            echo "<span><i class=\"fas fa-bars\"></i> $lines linhas</span>" >> index.html
-            echo "<span><i class=\"fas fa-weight-hanging\"></i> ${size_kb} KB</span>" >> index.html
-            echo '</div>' >> index.html
-            echo "<p><a href=\"#css_${file_id}\">🎨 Ver código COMPLETO →</a></p>" >> index.html
-            echo '</div>' >> index.html
-          fi
+          filename=$(basename "$file")
+          relative_path=${file#fonte-completo/}
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          size=$(stat -c%s "$file" 2>/dev/null || wc -c < "$file" 2>/dev/null || echo "0")
+          size_kb=$(( (size + 1023) / 1024 ))
+          file_id=$(echo "$relative_path" | tr '/.' '_' | tr -cd '[:alnum:]_')
+          
+          echo '<div class="file-card">' >> index.html
+          echo "<h3>🎨 <span class=\"css\">$filename</span> <span class=\"file-size-badge\">${size_kb} KB</span></h3>" >> index.html
+          echo "<p><strong>📍 Local:</strong> $(dirname "$relative_path")</p>" >> index.html
+          echo "<p><strong>📏 Linhas:</strong> $lines</p>" >> index.html
+          echo '<div class="file-stats">' >> index.html
+          echo '<span><i class="fas fa-file-code"></i> CSS</span>' >> index.html
+          echo "<span><i class=\"fas fa-bars\"></i> $lines linhas</span>" >> index.html
+          echo "<span><i class=\"fas fa-weight-hanging\"></i> ${size_kb} KB</span>" >> index.html
+          echo '</div>' >> index.html
+          echo "<p><a href=\"#css_${file_id}\">🎨 Ver código COMPLETO →</a></p>" >> index.html
+          echo '</div>' >> index.html
         done
         
         # Processar todos os arquivos JSON
         for file in $JSON_FILES; do
-          if [ -f "$file" ]; then
-            filename=$(basename "$file")
-            relative_path=${file#fonte-completo/}
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            size=$(stat -c%s "$file" 2>/dev/null || wc -c < "$file" 2>/dev/null || echo "0")
-            size_kb=$(( (size + 1023) / 1024 ))
-            file_id=$(echo "$relative_path" | tr '/.' '_')
-            
-            echo '<div class="file-card">' >> index.html
-            echo "<h3>📋 <span class=\"json\">$filename</span> <span class=\"file-size-badge\">${size_kb} KB</span></h3>" >> index.html
-            echo "<p><strong>📍 Local:</strong> $(dirname "$relative_path")</p>" >> index.html
-            echo "<p><strong>📏 Linhas:</strong> $lines</p>" >> index.html
-            echo '<div class="file-stats">' >> index.html
-            echo '<span><i class="fas fa-file-code"></i> JSON</span>' >> index.html
-            echo "<span><i class=\"fas fa-bars\"></i> $lines linhas</span>" >> index.html
-            echo "<span><i class=\"fas fa-weight-hanging\"></i> ${size_kb} KB</span>" >> index.html
-            echo '</div>' >> index.html
-            echo "<p><a href=\"#json_${file_id}\">📋 Ver código COMPLETO →</a></p>" >> index.html
-            echo '</div>' >> index.html
-          fi
+          filename=$(basename "$file")
+          relative_path=${file#fonte-completo/}
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          size=$(stat -c%s "$file" 2>/dev/null || wc -c < "$file" 2>/dev/null || echo "0")
+          size_kb=$(( (size + 1023) / 1024 ))
+          file_id=$(echo "$relative_path" | tr '/.' '_' | tr -cd '[:alnum:]_')
+          
+          echo '<div class="file-card">' >> index.html
+          echo "<h3>📋 <span class=\"json\">$filename</span> <span class=\"file-size-badge\">${size_kb} KB</span></h3>" >> index.html
+          echo "<p><strong>📍 Local:</strong> $(dirname "$relative_path")</p>" >> index.html
+          echo "<p><strong>📏 Linhas:</strong> $lines</p>" >> index.html
+          echo '<div class="file-stats">' >> index.html
+          echo '<span><i class="fas fa-file-code"></i> JSON</span>' >> index.html
+          echo "<span><i class=\"fas fa-bars\"></i> $lines linhas</span>" >> index.html
+          echo "<span><i class=\"fas fa-weight-hanging\"></i> ${size_kb} KB</span>" >> index.html
+          echo '</div>' >> index.html
+          echo "<p><a href=\"#json_${file_id}\">📋 Ver código COMPLETO →</a></p>" >> index.html
+          echo '</div>' >> index.html
         done
         
         echo '</div>' >> index.html
@@ -454,71 +412,67 @@ HTML_EOF
         
         FILE_COUNTER=0
         for file in $ALL_FILES; do
-          if [ -f "$file" ]; then
-            filename=$(basename "$file")
-            relative_path=${file#fonte-completo/}
-            file_id=$(echo "$relative_path" | tr '/.' '_')
-            extension="${filename##*.}"
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            FILE_COUNTER=$((FILE_COUNTER + 1))
+          filename=$(basename "$file")
+          relative_path=${file#fonte-completo/}
+          file_id=$(echo "$relative_path" | tr '/.' '_' | tr -cd '[:alnum:]_')
+          extension="${filename##*.}"
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          FILE_COUNTER=$((FILE_COUNTER + 1))
+          
+          # Determinar ícone e classe
+          case $extension in
+            "html")
+              icon="🌐"
+              class="html"
+              ;;
+            "js")
+              icon="📜"
+              class="js"
+              ;;
+            "css")
+              icon="🎨"
+              class="css"
+              ;;
+            "json")
+              icon="📋"
+              class="json"
+              ;;
+            "md")
+              icon="📝"
+              class="md"
+              ;;
+            "yml"|"yaml")
+              icon="⚙️"
+              class="yml"
+              ;;
+            *)
+              icon="📄"
+              class=""
+              ;;
+          esac
+          
+          echo "<div class=\"code-viewer\" id=\"${class}_${file_id}\">" >> index.html
+          echo "<h3>$icon $relative_path <span class=\"complete-badge\">$lines linhas</span></h3>" >> index.html
+          echo "<div style=\"margin: 10px 0; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 5px; font-size: 0.9em;\">" >> index.html
+          echo "<strong>📊 Estatísticas:</strong> $lines linhas | Arquivo #$FILE_COUNTER de $TOTAL_FILES | Tipo: $extension" >> index.html
+          echo "</div>" >> index.html
+          echo '<pre>' >> index.html
+          
+          # LER E MOSTRAR TODAS AS LINHAS - SEM LIMITAÇÕES
+          line_num=1
+          while IFS= read -r line || [ -n "$line" ]; do
+            # Escapar HTML
+            line_escaped=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
             
-            # Determinar ícone e classe
-            case $extension in
-              "html")
-                icon="🌐"
-                class="html"
-                ;;
-              "js")
-                icon="📜"
-                class="js"
-                ;;
-              "css")
-                icon="🎨"
-                class="css"
-                ;;
-              "json")
-                icon="📋"
-                class="json"
-                ;;
-              "md")
-                icon="📝"
-                class="md"
-                ;;
-              "yml"|"yaml")
-                icon="⚙️"
-                class="yml"
-                ;;
-              *)
-                icon="📄"
-                class=""
-                ;;
-            esac
-            
-            echo "<div class=\"code-viewer\" id=\"${class}_${file_id}\">" >> index.html
-            echo "<h3>$icon $relative_path <span class=\"complete-badge\">$lines linhas</span></h3>" >> index.html
-            echo "<div style=\"margin: 10px 0; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 5px; font-size: 0.9em;\">" >> index.html
-            echo "<strong>📊 Estatísticas:</strong> $lines linhas | Arquivo #$FILE_COUNTER de $TOTAL_FILES | Tipo: $extension" >> index.html
-            echo "</div>" >> index.html
-            echo '<pre>' >> index.html
-            
-            # LER E MOSTRAR TODAS AS LINHAS - SEM LIMITAÇÕES
-            if [ -f "$file" ]; then
-              line_num=1
-              while IFS= read -r line || [ -n "$line" ]; do
-                # Escapar HTML
-                line_escaped=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
-                
-                echo "<span class=\"line-number\">$line_num</span>$line_escaped<br/>" >> index.html
-                line_num=$((line_num + 1))
-              done < "$file"
-            fi
-            
-            echo '</pre>' >> index.html
-            echo "<div style=\"margin-top: 15px; padding: 10px; background: rgba(46, 164, 79, 0.1); border-radius: 5px; text-align: center;\">" >> index.html
-            echo "<strong>✅ EXTRADO COMPLETAMENTE:</strong> Todas as $lines linhas foram carregadas." >> index.html
-            echo '</div>' >> index.html
-            echo '</div>' >> index.html
-          fi
+            echo "<span class=\"line-number\">$line_num</span>$line_escaped<br/>" >> index.html
+            line_num=$((line_num + 1))
+          done < "$file"
+          
+          echo '</pre>' >> index.html
+          echo "<div style=\"margin-top: 15px; padding: 10px; background: rgba(46, 164, 79, 0.1); border-radius: 5px; text-align: center;\">" >> index.html
+          echo "<strong>✅ EXTRADO COMPLETAMENTE:</strong> Todas as $lines linhas foram carregadas." >> index.html
+          echo '</div>' >> index.html
+          echo '</div>' >> index.html
         done
         
         # FOOTER
@@ -557,7 +511,7 @@ HTML_EOF
         echo '                window.scrollTo({' >> index.html
         echo '                    top: targetElement.offsetTop - 20,' >> index.html
         echo '                    behavior: "smooth"' >> index.html
-                echo '                });' >> index.html
+        echo '                });' >> index.html
         echo '            }' >> index.html
         echo '        });' >> index.html
         echo '    });' >> index.html
