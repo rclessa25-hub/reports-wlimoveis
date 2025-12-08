@@ -1,4 +1,4 @@
-name: 📥 Extrair Código Fonte ver2
+name: 📥 Extrair Código Fonte Ver2
 
 on:
   workflow_dispatch:
@@ -25,15 +25,6 @@ jobs:
         echo "📥 CLONANDO CÓDIGO FONTE..."
         echo "========================="
         git clone https://github.com/rclessa25-hub/imoveis-maceio.git fonte-completo
-        
-        echo "📁 Verificando arquivos JS..."
-        echo "=========================="
-        for js_file in fonte-completo/js/*.js fonte-completo/js/**/*.js 2>/dev/null; do
-          if [ -f "$js_file" ] && [ -s "$js_file" ]; then
-            lines=$(wc -l < "$js_file" 2>/dev/null || echo "0")
-            echo "$(basename "$js_file"): $lines linhas"
-          fi
-        done
     
     - name: 📝 Criar relatório com código real
       run: |
@@ -43,61 +34,52 @@ jobs:
         DATE_NOW=$(date '+%d/%m/%Y às %H:%M:%S')
         
         # Calcular estatísticas
-        HTML_FILES=$(find fonte-completo -name "*.html" -type f)
-        JS_FILES=$(find fonte-completo -name "*.js" -type f)
-        CSS_FILES=$(find fonte-completo -name "*.css" -type f)
-        JSON_FILES=$(find fonte-completo -name "*.json" -type f)
+        HTML_COUNT=$(find fonte-completo -name "*.html" -type f | wc -l)
+        JS_COUNT=$(find fonte-completo -name "*.js" -type f | wc -l)
+        CSS_COUNT=$(find fonte-completo -name "*.css" -type f | wc -l)
+        JSON_COUNT=$(find fonte-completo -name "*.json" -type f | wc -l)
         
-        HTML_COUNT=$(echo "$HTML_FILES" | grep -c "^" || echo "0")
-        JS_COUNT=$(echo "$JS_FILES" | grep -c "^" || echo "0")
-        CSS_COUNT=$(echo "$CSS_FILES" | grep -c "^" || echo "0")
-        JSON_COUNT=$(echo "$JSON_FILES" | grep -c "^" || echo "0")
+        TOTAL_FILES=$((HTML_COUNT + JS_COUNT + CSS_COUNT + JSON_COUNT))
         
         # Contar linhas totais
         TOTAL_LINES=0
-        for file in $HTML_FILES $JS_FILES $CSS_FILES $JSON_FILES; do
+        for file in $(find fonte-completo -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" \)); do
           lines=$(wc -l < "$file" 2>/dev/null || echo "0")
           TOTAL_LINES=$((TOTAL_LINES + lines))
         done
         
-        TOTAL_FILES=$((HTML_COUNT + JS_COUNT + CSS_COUNT + JSON_COUNT))
+        # Criar função para contar funções
+        cat > /tmp/count_func.sh << 'FUNC_EOF'
+count_functions() {
+  local file="$1"
+  if [[ "$file" == *.js ]] && [ -s "$file" ]; then
+    local lines=$(wc -l < "$file" 2>/dev/null)
+    if [ "$lines" -lt 5 ]; then
+      echo "0"
+      return
+    fi
+    local count=$(grep -c -E "function[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*|=[[:space:]]*(async[[:space:]]+)?\(.*\)[[:space:]]*=>|[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\(.*\)[[:space:]]*\{" "$file" 2>/dev/null || echo "0")
+    echo "$count"
+  else
+    echo "0"
+  fi
+}
+FUNC_EOF
         
-        # Função SIMPLES para contar funções
-        echo 'count_functions_simple() {' > count_func.sh
-        echo '  local file="$1"' >> count_func.sh
-        echo '  if [[ "$file" == *.js ]] && [ -s "$file" ]; then' >> count_func.sh
-        echo '    local lines=$(wc -l < "$file" 2>/dev/null)' >> count_func.sh
-        echo '    if [ "$lines" -lt 5 ]; then' >> count_func.sh
-        echo '      echo "0"' >> count_func.sh
-        echo '      return' >> count_func.sh
-        echo '    fi' >> count_func.sh
-        echo '    # Contar function declarations e arrow functions' >> count_func.sh
-        echo '    local count=$(grep -c -E "function\s+\w+|=\s*(async\s+)?\(.*\)\s*=>|\w+\s*\(.*\)\s*\{" "$file" 2>/dev/null || echo "0")' >> count_func.sh
-        echo '    echo "$count"' >> count_func.sh
-        echo '  else' >> count_func.sh
-        echo '    echo "0"' >> count_func.sh
-        echo '  fi' >> count_func.sh
-        echo '}' >> count_func.sh
+        source /tmp/count_func.sh
         
-        chmod +x count_func.sh
-        source ./count_func.sh
-        
-        # Testar contagem
-        echo ""
-        echo "🧮 CONTANDO FUNÇÕES..."
-        echo "====================="
+        # Contar funções totais
         TOTAL_FUNCTIONS=0
-        for js_file in $JS_FILES; do
-          if [ -f "$js_file" ]; then
-            functions=$(count_functions_simple "$js_file")
-            lines=$(wc -l < "$js_file" 2>/dev/null || echo "0")
-            TOTAL_FUNCTIONS=$((TOTAL_FUNCTIONS + functions))
-            echo "$(basename "$js_file"): $lines linhas, $functions funções"
-          fi
+        for js_file in $(find fonte-completo -name "*.js" -type f); do
+          functions=$(count_functions "$js_file")
+          TOTAL_FUNCTIONS=$((TOTAL_FUNCTIONS + functions))
         done
         
-        # Criar HTML básico
-        cat > index.html << EOF
+        # Criar o HTML em partes
+        echo 'Criando HTML...'
+        
+        # Parte 1: Header
+        cat > /tmp/header.html << 'HEADER_EOF'
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -124,6 +106,10 @@ pre { margin: 0; font-family: "Monaco", monospace; font-size: 0.9em; line-height
 .line-number { color: #6a737d; margin-right: 15px; user-select: none; }
 a { color: #2ea44f; text-decoration: none; }
 a:hover { text-decoration: underline; }
+.summary { background: #161b22; padding: 20px; border-radius: 8px; margin: 30px 0; }
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+.summary-item { text-align: center; padding: 15px; background: #21262d; border-radius: 6px; }
+.summary-number { font-size: 2em; font-weight: bold; color: #2ea44f; margin: 10px 0; }
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -132,62 +118,76 @@ a:hover { text-decoration: underline; }
 <header>
 <h1>📥 Código Fonte Completo</h1>
 <p>Imóveis Maceió - Extração completa de todas as linhas</p>
-<p><strong>Gerado em:</strong> $DATE_NOW</p>
+<p><strong>Gerado em:</strong> 
+HEADER_EOF
+        
+        echo "$DATE_NOW" >> /tmp/header.html
+        
+        cat >> /tmp/header.html << 'HEADER_EOF2'
+</p>
 </header>
-
+HEADER_EOF2
+        
+        # Criar arquivos em partes e concatenar
+        cat /tmp/header.html > index.html
+        
+        # Adicionar lista de arquivos
+        cat >> index.html << 'LIST_START'
 <h2>📁 Lista de Arquivos Extraídos</h2>
 <div class="file-list">
-EOF
+LIST_START
         
-        # Adicionar cards de arquivos
-        for file in fonte-completo/*.html fonte-completo/css/*.css fonte-completo/js/*.js fonte-completo/js/modules/*.js fonte-completo/js/components/*.js fonte-completo/*.json 2>/dev/null; do
-          if [ -f "$file" ]; then
-            filename=$(basename "$file")
-            relative_path=${file#fonte-completo/}
-            dir_path=$(dirname "$relative_path")
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            size=$(wc -c < "$file" 2>/dev/null || echo "0")
-            size_kb=$((size / 1024))
-            
-            if [[ "$file" == *.html ]]; then
-              icon="📄"
-              class="html"
-              type="HTML"
-              functions_display="N/A"
-            elif [[ "$file" == *.js ]]; then
-              icon="📜"
-              class="js"
-              functions=$(count_functions_simple "$file")
-              if [[ "$relative_path" == *"modules"* ]]; then
-                type="Módulo JS"
-              elif [[ "$relative_path" == *"components"* ]]; then
-                type="Componente JS"
-              else
-                type="JavaScript"
-              fi
-              if [ "$functions" -gt 0 ]; then
-                functions_display="<span class='functions-badge'>$functions função(ões)</span>"
-              else
-                functions_display="Sem funções detectadas"
-              fi
-            elif [[ "$file" == *.css ]]; then
-              icon="🎨"
-              class="css"
-              type="CSS"
-              functions_display="N/A"
-            elif [[ "$file" == *.json ]]; then
-              icon="📋"
-              class="json"
-              type="JSON"
-              functions_display="N/A"
+        # Adicionar cada arquivo
+        for file in $(find fonte-completo -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" \) | sort); do
+          filename=$(basename "$file")
+          relative_path=${file#fonte-completo/}
+          dir_path=$(dirname "$relative_path")
+          if [ "$dir_path" = "." ]; then
+            dir_path="raiz"
+          fi
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          size=$(wc -c < "$file" 2>/dev/null || echo "0")
+          size_kb=$((size / 1024))
+          
+          if [[ "$file" == *.html ]]; then
+            icon="📄"
+            class="html"
+            type="HTML"
+            functions_display="N/A"
+          elif [[ "$file" == *.js ]]; then
+            icon="📜"
+            class="js"
+            functions=$(count_functions "$file")
+            if [[ "$relative_path" == *"modules"* ]]; then
+              type="Módulo JS"
+            elif [[ "$relative_path" == *"components"* ]]; then
+              type="Componente JS"
             else
-              icon="📁"
-              class=""
-              type="Arquivo"
-              functions_display="N/A"
+              type="JavaScript"
             fi
-            
-            cat >> index.html << FILEEOF
+            if [ "$functions" -gt 0 ]; then
+              functions_display="<span class='functions-badge'>$functions função(ões)</span>"
+            else
+              functions_display="Sem funções detectadas"
+            fi
+          elif [[ "$file" == *.css ]]; then
+            icon="🎨"
+            class="css"
+            type="CSS"
+            functions_display="N/A"
+          elif [[ "$file" == *.json ]]; then
+            icon="📋"
+            class="json"
+            type="JSON"
+            functions_display="N/A"
+          else
+            icon="📁"
+            class=""
+            type="Arquivo"
+            functions_display="N/A"
+          fi
+          
+          cat >> index.html << FILE_CARD
 <div class="file-card">
 <h3>$icon <span class="$class">$filename</span></h3>
 <div class="file-info">
@@ -198,64 +198,100 @@ EOF
 </div>
 <p><a href="#$(echo "$relative_path" | sed 's/[^a-zA-Z0-9]/_/g')"><i class="fas fa-eye"></i> Ver código completo →</a></p>
 </div>
-FILEEOF
-          fi
+FILE_CARD
         done
         
-        # Fechar lista e adicionar resumo
-        cat >> index.html << EOF
+        cat >> index.html << 'LIST_END'
 </div>
-
+LIST_END
+        
+        # Adicionar resumo
+        cat >> index.html << SUMMARY_START
 <h2>📊 Resumo da Extração</h2>
-<div style="background: #161b22; padding: 20px; border-radius: 8px;">
-<p><strong>Total de arquivos:</strong> $TOTAL_FILES</p>
-<p><strong>Total de linhas:</strong> $TOTAL_LINES</p>
-<p><strong>Total de funções JS:</strong> $TOTAL_FUNCTIONS</p>
-<p><strong>HTML:</strong> $HTML_COUNT arquivos</p>
-<p><strong>JavaScript:</strong> $JS_COUNT arquivos</p>
-<p><strong>CSS:</strong> $CSS_COUNT arquivos</p>
-<p><strong>JSON:</strong> $JSON_COUNT arquivos</p>
+<div class="summary">
+<div class="summary-grid">
+<div class="summary-item">
+<h4>Total de Arquivos</h4>
+<div class="summary-number">$TOTAL_FILES</div>
+</div>
+<div class="summary-item">
+<h4>Total de Linhas</h4>
+<div class="summary-number">$TOTAL_LINES</div>
+</div>
+<div class="summary-item">
+<h4>Funções JS</h4>
+<div class="summary-number">$TOTAL_FUNCTIONS</div>
+</div>
+<div class="summary-item">
+<h4>HTML</h4>
+<div class="summary-number">$HTML_COUNT</div>
+</div>
+<div class="summary-item">
+<h4>JavaScript</h4>
+<div class="summary-number">$JS_COUNT</div>
+</div>
+<div class="summary-item">
+<h4>CSS</h4>
+<div class="summary-number">$CSS_COUNT</div>
+</div>
+<div class="summary-item">
+<h4>JSON</h4>
+<div class="summary-number">$JSON_COUNT</div>
+</div>
+</div>
 </div>
 
 <h2>📜 Código Fonte Completo</h2>
-EOF
+SUMMARY_START
         
         # Adicionar código de cada arquivo
-        for file in fonte-completo/*.html fonte-completo/css/*.css fonte-completo/js/*.js fonte-completo/js/modules/*.js fonte-completo/js/components/*.js fonte-completo/*.json 2>/dev/null; do
-          if [ -f "$file" ]; then
-            filename=$(basename "$file")
-            relative_path=${file#fonte-completo/}
-            file_id=$(echo "$relative_path" | sed 's/[^a-zA-Z0-9]/_/g')
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            
-            cat >> index.html << CODEEOF
+        for file in $(find fonte-completo -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" \) | sort); do
+          filename=$(basename "$file")
+          relative_path=${file#fonte-completo/}
+          file_id=$(echo "$relative_path" | sed 's/[^a-zA-Z0-9]/_/g')
+          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+          
+          cat >> index.html << CODE_START
 <div class="code-viewer" id="$file_id">
 <h3>$relative_path ($lines linhas)</h3>
 <pre>
-CODEEOF
-            
-            cat "$file" | cat -n | while read num line; do
-              line_escaped=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
-              echo "<span class='line-number'>$num</span>$line_escaped<br/>" >> index.html
-            done
-            
-            cat >> index.html << 'CODEEOF'
+CODE_START
+          
+          line_num=1
+          while IFS= read -r line || [ -n "$line" ]; do
+            line_escaped=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+            echo "<span class='line-number'>$line_num</span>$line_escaped<br/>" >> index.html
+            line_num=$((line_num + 1))
+          done < "$file"
+          
+          cat >> index.html << CODE_END
 </pre>
 </div>
-CODEEOF
-          fi
+CODE_END
         done
         
         # Footer
-        cat >> index.html << 'EOF'
+        cat >> index.html << 'FOOTER_EOF'
 <footer style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #30363d; color: #8b949e;">
 <p><strong>📥 Extração Completa do Código Fonte</strong></p>
-<p>Gerado automaticamente em '"$DATE_NOW"'</p>
+<p>Gerado automaticamente</p>
 </footer>
 </div>
+<script>
+document.querySelectorAll('.code-viewer pre').forEach(pre => {
+    const keywords = ['function', 'const', 'let', 'var', 'class', 'import', 'export', 'async', 'await', 'return', 'if', 'else', 'for', 'while', 'try', 'catch', 'throw'];
+    let html = pre.innerHTML;
+    keywords.forEach(keyword => {
+        const regex = new RegExp('\\b' + keyword + '\\b', 'g');
+        html = html.replace(regex, '<span style="color: #ff7b72; font-weight: bold;">' + keyword + '</span>');
+    });
+    html = html.replace(/(\w+)\s*\(/g, '<span style="color: #d2a8ff;">$1</span>(');
+    pre.innerHTML = html;
+});
+</script>
 </body>
 </html>
-EOF
+FOOTER_EOF
         
         echo "✅ Relatório gerado com sucesso!"
         echo ""
@@ -264,6 +300,10 @@ EOF
         echo "Arquivos: $TOTAL_FILES"
         echo "Linhas: $TOTAL_LINES"
         echo "Funções JS: $TOTAL_FUNCTIONS"
+        echo "HTML: $HTML_COUNT"
+        echo "JavaScript: $JS_COUNT"
+        echo "CSS: $CSS_COUNT"
+        echo "JSON: $JSON_COUNT"
     
     - name: 📦 Upload para GitHub Pages
       uses: actions/upload-pages-artifact@v3
@@ -287,4 +327,4 @@ EOF
         echo "• ⚡ Contagem de funções JavaScript"
         echo "• 📊 Estatísticas precisas"
         echo "• 📜 Código completo sem limitações"
-        echo "• 🔄 Atualização automática"
+        echo "• 🎨 Design moderno e responsivo"
