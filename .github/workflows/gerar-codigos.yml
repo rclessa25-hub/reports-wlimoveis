@@ -1,0 +1,275 @@
+name: 🔧 Gerar Códigos
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  generate-files:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+    
+    - name: 📥 Baixar projeto
+      run: |
+        echo "🔧 BAIXANDO PROJETO..."
+        git clone https://github.com/rclessa25-hub/imoveis-maceio.git codigo-original
+        
+        echo "📊 ARQUIVOS ENCONTRADOS:"
+        find codigo-original -type f -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" | sort
+    
+    - name: 📝 Criar índice principal
+      run: |
+        echo "📄 CRIANDO ÍNDICE..."
+        
+        DATE_NOW=$(date '+%d/%m/%Y às %H:%M:%S')
+        
+        # Criar index.html principal
+        echo '<!DOCTYPE html>' > index.html
+        echo '<html lang="pt-BR">' >> index.html
+        echo '<head>' >> index.html
+        echo '<meta charset="UTF-8">' >> index.html
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
+        echo '<title>🔧 Códigos - Imóveis Maceió</title>' >> index.html
+        echo '<style>' >> index.html
+        echo 'body { font-family: Arial, sans-serif; background: #0d1117; color: white; margin: 0; padding: 20px; }' >> index.html
+        echo '.container { max-width: 1200px; margin: 0 auto; }' >> index.html
+        echo 'header { text-align: center; padding: 30px 0; border-bottom: 3px solid #2ea44f; }' >> index.html
+        echo 'h1 { color: #2ea44f; font-size: 2.5em; }' >> index.html
+        echo '.file-list { margin: 30px 0; }' >> index.html
+        echo '.file-item { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px; margin: 10px 0; }' >> index.html
+        echo '.file-item a { color: #2ea44f; text-decoration: none; font-weight: bold; }' >> index.html
+        echo '.file-info { color: #8b949e; font-size: 0.9em; margin-top: 5px; }' >> index.html
+        echo '</style>' >> index.html
+        echo '</head>' >> index.html
+        echo '<body>' >> index.html
+        echo '<div class="container">' >> index.html
+        echo '<header>' >> index.html
+        echo '<h1>🔧 Códigos Completos</h1>' >> index.html
+        echo '<p>Imóveis Maceió - Todo o Código Fonte</p>' >> index.html
+        echo '<p><strong>Gerado em:</strong> '"$DATE_NOW"'</p>' >> index.html
+        echo '</header>' >> index.html
+        
+        echo '<div class="file-list">' >> index.html
+        echo '<h2>📁 Índice de Arquivos</h2>' >> index.html
+        
+        # Listar HTML
+        for file in codigo-original/*.html; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            safe_name=$(echo "$filename" | sed 's/\.html$//')
+            lines=$(wc -l < "$file")
+            
+            # Criar página para este arquivo
+            echo '<!DOCTYPE html>' > "${safe_name}.html"
+            echo '<html lang="pt-BR">' >> "${safe_name}.html"
+            echo '<head>' >> "${safe_name}.html"
+            echo '<meta charset="UTF-8">' >> "${safe_name}.html"
+            echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">' >> "${safe_name}.html"
+            echo '<title>'"$filename"' - Imóveis Maceió</title>' >> "${safe_name}.html"
+            echo '<style>' >> "${safe_name}.html"
+            echo 'body { font-family: Monaco, monospace; background: #0d1117; color: white; margin: 0; padding: 20px; }' >> "${safe_name}.html"
+            echo 'pre { margin: 0; }' >> "${safe_name}.html"
+            echo '.line { display: flex; }' >> "${safe_name}.html"
+            echo '.num { color: #6a737d; width: 50px; text-align: right; padding-right: 10px; }' >> "${safe_name}.html"
+            echo '.code { flex: 1; }' >> "${safe_name}.html"
+            echo '</style>' >> "${safe_name}.html"
+            echo '</head>' >> "${safe_name}.html"
+            echo '<body>' >> "${safe_name}.html"
+            echo '<h1>'"$filename"'</h1>' >> "${safe_name}.html"
+            echo '<p><strong>Linhas:</strong> '"$lines"'</p>' >> "${safe_name}.html"
+            echo '<pre>' >> "${safe_name}.html"
+            
+            # Adicionar TODO o conteúdo
+            line_num=1
+            while IFS= read -r line || [ -n "$line" ]; do
+              safe_line=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+              echo '<div class="line">' >> "${safe_name}.html"
+              echo '<span class="num">'"$line_num"'</span>' >> "${safe_name}.html"
+              echo '<span class="code">'"$safe_line"'</span>' >> "${safe_name}.html"
+              echo '</div>' >> "${safe_name}.html"
+              line_num=$((line_num + 1))
+            done < "$file"
+            
+            echo '</pre>' >> "${safe_name}.html"
+            echo '</body>' >> "${safe_name}.html"
+            echo '</html>' >> "${safe_name}.html"
+            
+            # Adicionar ao índice
+            echo '<div class="file-item">' >> index.html
+            echo '<a href="'"${safe_name}.html"'">📄 '"$filename"'</a>' >> index.html
+            echo '<div class="file-info">'"$lines"' linhas | <a href="'"${safe_name}.html"'#end">Ver final</a></div>' >> index.html
+            echo '</div>' >> index.html
+          fi
+        done
+        
+        # Listar JS
+        echo '<h3>📜 JavaScript</h3>' >> index.html
+        
+        # Main.js
+        if [ -f "codigo-original/js/main.js" ]; then
+          lines=$(wc -l < "codigo-original/js/main.js")
+          
+          echo '<!DOCTYPE html>' > "mainjs.html"
+          echo '<html lang="pt-BR">' >> "mainjs.html"
+          echo '<head><meta charset="UTF-8"><title>main.js</title>' >> "mainjs.html"
+          echo '<style>body { font-family: Monaco; background: #0d1117; color: white; } pre { margin: 0; }</style>' >> "mainjs.html"
+          echo '</head><body>' >> "mainjs.html"
+          echo '<h1>js/main.js</h1>' >> "mainjs.html"
+          echo '<pre>' >> "mainjs.html"
+          cat "codigo-original/js/main.js" >> "mainjs.html"
+          echo '</pre></body></html>' >> "mainjs.html"
+          
+          echo '<div class="file-item">' >> index.html
+          echo '<a href="mainjs.html">📜 main.js</a>' >> index.html
+          echo '<div class="file-info">'"$lines"' linhas</div>' >> index.html
+          echo '</div>' >> index.html
+        fi
+        
+        # Módulos JS
+        for file in codigo-original/js/modules/*.js; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            safename=$(echo "$filename" | sed 's/\.js$//')
+            lines=$(wc -l < "$file")
+            
+            echo '<!DOCTYPE html>' > "${safename}.html"
+            echo '<html><head><meta charset="UTF-8"><title>'"$filename"'</title>' >> "${safename}.html"
+            echo '<style>body { font-family: Monaco; background: #0d1117; color: white; }</style>' >> "${safename}.html"
+            echo '</head><body>' >> "${safename}.html"
+            echo '<h1>js/modules/'"$filename"'</h1>' >> "${safename}.html"
+            echo '<pre>' >> "${safename}.html"
+            cat "$file" >> "${safename}.html"
+            echo '</pre></body></html>' >> "${safename}.html"
+            
+            echo '<div class="file-item">' >> index.html
+            echo '<a href="'"${safename}.html"'">📜 '"$filename"'</a>' >> index.html
+            echo '<div class="file-info">'"$lines"' linhas</div>' >> index.html
+            echo '</div>' >> index.html
+          fi
+        done
+        
+        # Componentes JS
+        for file in codigo-original/js/components/*.js; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            safename="comp_$(echo "$filename" | sed 's/\.js$//')"
+            lines=$(wc -l < "$file")
+            
+            echo '<!DOCTYPE html>' > "${safename}.html"
+            echo '<html><head><meta charset="UTF-8"><title>'"$filename"'</title>' >> "${safename}.html"
+            echo '<style>body { font-family: Monaco; background: #0d1117; color: white; }</style>' >> "${safename}.html"
+            echo '</head><body>' >> "${safename}.html"
+            echo '<h1>js/components/'"$filename"'</h1>' >> "${safename}.html"
+            echo '<pre>' >> "${safename}.html"
+            cat "$file" >> "${safename}.html"
+            echo '</pre></body></html>' >> "${safename}.html"
+            
+            echo '<div class="file-item">' >> index.html
+            echo '<a href="'"${safename}.html"'">📜 '"$filename"'</a>' >> index.html
+            echo '<div class="file-info">'"$lines"' linhas</div>' >> index.html
+            echo '</div>' >> index.html
+          fi
+        done
+        
+        # CSS
+        echo '<h3>🎨 CSS</h3>' >> index.html
+        
+        for file in codigo-original/css/*.css; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            safename=$(echo "$filename" | sed 's/\.css$//')
+            lines=$(wc -l < "$file")
+            
+            echo '<!DOCTYPE html>' > "${safename}.html"
+            echo '<html><head><meta charset="UTF-8"><title>'"$filename"'</title>' >> "${safename}.html"
+            echo '<style>body { font-family: Monaco; background: #0d1117; color: white; }</style>' >> "${safename}.html"
+            echo '</head><body>' >> "${safename}.html"
+            echo '<h1>css/'"$filename"'</h1>' >> "${safename}.html"
+            echo '<pre>' >> "${safename}.html"
+            cat "$file" >> "${safename}.html"
+            echo '</pre></body></html>' >> "${safename}.html"
+            
+            echo '<div class="file-item">' >> index.html
+            echo '<a href="'"${safename}.html"'">🎨 '"$filename"'</a>' >> index.html
+            echo '<div class="file-info">'"$lines"' linhas</div>' >> index.html
+            echo '</div>' >> index.html
+          fi
+        done
+        
+        # JSON
+        echo '<h3>📋 JSON</h3>' >> index.html
+        
+        for file in codigo-original/*.json; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            safename=$(echo "$filename" | sed 's/\.json$//')
+            lines=$(wc -l < "$file")
+            
+            echo '<!DOCTYPE html>' > "${safename}.html"
+            echo '<html><head><meta charset="UTF-8"><title>'"$filename"'</title>' >> "${safename}.html"
+            echo '<style>body { font-family: Monaco; background: #0d1117; color: white; }</style>' >> "${safename}.html"
+            echo '</head><body>' >> "${safename}.html"
+            echo '<h1>'"$filename"'</h1>' >> "${safename}.html"
+            echo '<pre>' >> "${safename}.html"
+            cat "$file" >> "${safename}.html"
+            echo '</pre></body></html>' >> "${safename}.html"
+            
+            echo '<div class="file-item">' >> index.html
+            echo '<a href="'"${safename}.html"'">📋 '"$filename"'</a>' >> index.html
+            echo '<div class="file-info">'"$lines"' linhas</div>' >> index.html
+            echo '</div>' >> index.html
+          fi
+        done
+        
+        echo '</div>' >> index.html  # Fecha file-list
+        
+        # Estatísticas
+        total_lines=$(find codigo-original -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" -type f -exec cat {} \; 2>/dev/null | wc -l || echo "0")
+        
+        echo '<div style="background: #161b22; padding: 20px; border-radius: 10px; margin: 30px 0;">' >> index.html
+        echo '<h2>📊 Estatísticas</h2>' >> index.html
+        echo '<p><strong>Total de linhas de código:</strong> '"$total_lines"'</p>' >> index.html
+        echo '<p><strong>Gerado em:</strong> '"$DATE_NOW"'</p>' >> index.html
+        echo '<p><a href="https://rclessa25-hub.github.io/imoveis-maceio/" style="color: #2ea44f;">🌐 Site Principal</a></p>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '</div>' >> index.html  # Fecha container
+        echo '</body>' >> index.html
+        echo '</html>' >> index.html
+        
+        echo "✅ Índice criado com sucesso!"
+    
+    - name: 📦 Upload
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '.'
+    
+    - name: 🚀 Deploy
+      uses: actions/deploy-pages@v4
+    
+    - name: 🎉 Resultado
+      run: |
+        echo ""
+        echo "🎉 CÓDIGOS COMPLETOS GERADOS!"
+        echo "============================"
+        echo ""
+        echo "🌐 ACESSE EM:"
+        echo "https://rclessa25-hub.github.io/reports-wlimoveis/"
+        echo ""
+        echo "✅ AGORA COM:"
+        echo "1. 📄 Página separada para CADA arquivo"
+        echo "2. 📜 TODO o código SEM CORTES"
+        echo "3. 🔢 Numeração de linhas"
+        echo "4. 📁 Índice organizado"
+        echo "5. ⚡ Carregamento rápido"
