@@ -24,606 +24,246 @@ jobs:
       run: |
         echo "📥 CLONANDO CÓDIGO FONTE..."
         echo "========================="
-        
-        # Clonar o projeto principal
         git clone https://github.com/rclessa25-hub/imoveis-maceio.git fonte-completo
         
-        echo "✅ Projeto clonado com sucesso!"
-        echo "📁 Verificando conteúdo real dos arquivos JS..."
-        echo "=============================================="
+        echo "📁 Verificando arquivos JS..."
+        echo "=========================="
         for js_file in fonte-completo/js/*.js fonte-completo/js/**/*.js 2>/dev/null; do
-          if [ -f "$js_file" ]; then
-            echo "🔍 $(basename "$js_file"):"
-            echo "   Linhas: $(wc -l < "$js_file")"
-            echo "   Primeiras 3 linhas:"
-            head -3 "$js_file" | sed 's/^/     /'
-            echo ""
+          if [ -f "$js_file" ] && [ -s "$js_file" ]; then
+            lines=$(wc -l < "$js_file" 2>/dev/null || echo "0")
+            echo "$(basename "$js_file"): $lines linhas"
           fi
         done
     
-    - name: 📝 Criar relatório com código real (TODAS AS LINHAS)
+    - name: 📝 Criar relatório com código real
       run: |
-        echo "📄 GERANDO RELATÓRIO COM CÓDIGO REAL..."
-        echo "======================================"
+        echo "📄 GERANDO RELATÓRIO..."
+        echo "======================"
         
         DATE_NOW=$(date '+%d/%m/%Y às %H:%M:%S')
         
-        echo "🔍 Calculando estatísticas EXATAS..."
-        echo "=================================="
-        
-        # Calcular estatísticas PRECISAS antes de gerar HTML
+        # Calcular estatísticas
         HTML_FILES=$(find fonte-completo -name "*.html" -type f)
         JS_FILES=$(find fonte-completo -name "*.js" -type f)
         CSS_FILES=$(find fonte-completo -name "*.css" -type f)
         JSON_FILES=$(find fonte-completo -name "*.json" -type f)
         
-        # Contar arquivos
         HTML_COUNT=$(echo "$HTML_FILES" | grep -c "^" || echo "0")
         JS_COUNT=$(echo "$JS_FILES" | grep -c "^" || echo "0")
         CSS_COUNT=$(echo "$CSS_FILES" | grep -c "^" || echo "0")
         JSON_COUNT=$(echo "$JSON_FILES" | grep -c "^" || echo "0")
         
-        # Calcular linhas totais com PRECISÃO
+        # Contar linhas totais
         TOTAL_LINES=0
-        echo "📊 Contando linhas de HTML..."
-        for file in $HTML_FILES; do
-          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-          TOTAL_LINES=$((TOTAL_LINES + lines))
-        done
-        
-        echo "📊 Contando linhas de JavaScript..."
-        for file in $JS_FILES; do
-          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-          TOTAL_LINES=$((TOTAL_LINES + lines))
-        done
-        
-        echo "📊 Contando linhas de CSS..."
-        for file in $CSS_FILES; do
-          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-          TOTAL_LINES=$((TOTAL_LINES + lines))
-        done
-        
-        echo "📊 Contando linhas de JSON..."
-        for file in $JSON_FILES; do
+        for file in $HTML_FILES $JS_FILES $CSS_FILES $JSON_FILES; do
           lines=$(wc -l < "$file" 2>/dev/null || echo "0")
           TOTAL_LINES=$((TOTAL_LINES + lines))
         done
         
         TOTAL_FILES=$((HTML_COUNT + JS_COUNT + CSS_COUNT + JSON_COUNT))
         
-        # FUNÇÃO MELHORADA PARA CONTAR FUNÇÕES
-        count_functions_accurate() {
-          local file="$1"
-          if [[ "$file" == *.js ]] && [ -s "$file" ]; then
-            # Verificar se o arquivo tem conteúdo real
-            local first_line=$(head -1 "$file" 2>/dev/null)
-            
-            # Se o arquivo tiver poucas linhas ou parecer vazio
-            if [ $(wc -l < "$file" 2>/dev/null) -lt 5 ]; then
-              echo "0"
-              return
-            fi
-            
-            # Método 1: Contar function declarations
-            local func_count1=$(grep -c -E "^\s*(export\s+)?(async\s+)?function\s+\w+" "$file" 2>/dev/null || echo "0")
-            
-            # Método 2: Contar arrow functions (const/let/var x = () => {})
-            local func_count2=$(grep -c -E "^\s*(export\s+)?(const|let|var)\s+\w+\s*=\s*(async\s+)?\([^)]*\)\s*=>" "$file" 2>/dev/null || echo "0")
-            
-            # Método 3: Contar métodos em classes
-            local func_count3=$(grep -c -E "^\s*\w+\s*\([^)]*\)\s*\{[^}]*\}" "$file" 2>/dev/null || echo "0")
-            
-            # Método 4: Contar funções atribuídas
-            local func_count4=$(grep -c -E "^\s*\w+\s*:\s*(async\s+)?function\s*\(|^\s*\w+\s*:\s*\([^)]*\)\s*=>" "$file" 2>/dev/null || echo "0")
-            
-            # Soma total
-            local total=$((func_count1 + func_count2 + func_count3 + func_count4))
-            
-            # Se ainda for 0, verificar padrões mais simples
-            if [ $total -eq 0 ]; then
-              total=$(grep -c -E "function\s+|=>\s*\{|\([^)]*\)\s*\{[^}]*\}" "$file" 2>/dev/null || echo "0")
-            fi
-            
-            echo "$total"
-          else
-            echo "0"
-          fi
-        }
+        # Função SIMPLES para contar funções
+        echo 'count_functions_simple() {' > count_func.sh
+        echo '  local file="$1"' >> count_func.sh
+        echo '  if [[ "$file" == *.js ]] && [ -s "$file" ]; then' >> count_func.sh
+        echo '    local lines=$(wc -l < "$file" 2>/dev/null)' >> count_func.sh
+        echo '    if [ "$lines" -lt 5 ]; then' >> count_func.sh
+        echo '      echo "0"' >> count_func.sh
+        echo '      return' >> count_func.sh
+        echo '    fi' >> count_func.sh
+        echo '    # Contar function declarations e arrow functions' >> count_func.sh
+        echo '    local count=$(grep -c -E "function\s+\w+|=\s*(async\s+)?\(.*\)\s*=>|\w+\s*\(.*\)\s*\{" "$file" 2>/dev/null || echo "0")' >> count_func.sh
+        echo '    echo "$count"' >> count_func.sh
+        echo '  else' >> count_func.sh
+        echo '    echo "0"' >> count_func.sh
+        echo '  fi' >> count_func.sh
+        echo '}' >> count_func.sh
         
-        # Testar a contagem em alguns arquivos
+        chmod +x count_func.sh
+        source ./count_func.sh
+        
+        # Testar contagem
         echo ""
-        echo "🧪 TESTANDO CONTAGEM DE FUNÇÕES..."
-        echo "================================="
-        for js_file in fonte-completo/js/*.js fonte-completo/js/**/*.js 2>/dev/null; do
-          if [ -f "$js_file" ] && [ -s "$js_file" ]; then
-            functions=$(count_functions_accurate "$js_file")
+        echo "🧮 CONTANDO FUNÇÕES..."
+        echo "====================="
+        TOTAL_FUNCTIONS=0
+        for js_file in $JS_FILES; do
+          if [ -f "$js_file" ]; then
+            functions=$(count_functions_simple "$js_file")
             lines=$(wc -l < "$js_file" 2>/dev/null || echo "0")
-            echo "🔍 $(basename "$js_file"): $lines linhas, $functions funções"
+            TOTAL_FUNCTIONS=$((TOTAL_FUNCTIONS + functions))
+            echo "$(basename "$js_file"): $lines linhas, $functions funções"
           fi
         done
         
-        echo ""
-        echo "📈 ESTATÍSTICAS EXATAS CALCULADAS:"
-        echo "================================="
-        echo "📁 Total de arquivos: $TOTAL_FILES"
-        echo "📊 Total de linhas: $TOTAL_LINES"
-        echo "🔸 HTML: $HTML_COUNT arquivos"
-        echo "🔹 JavaScript: $JS_COUNT arquivos"
-        echo "🎨 CSS: $CSS_COUNT arquivos"
-        echo "📋 JSON: $JSON_COUNT arquivos"
-        echo ""
-        
-        # Criar índice principal (mantendo todo o HTML anterior, mas substituindo a função de contagem)
-        # ... [todo o HTML anterior permanece igual até a função de contagem] ...
-        
-        # Na parte do HTML, substituir a função count_functions por count_functions_accurate
-        # Como o script é muito longo, vou mostrar apenas a parte modificada:
-        
-        # NO HTML, A FUNÇÃO count_functions DEVE SER SUBSTITUÍDA POR:
-        cat > temp_function_count.sh << 'EOF'
-count_functions_accurate() {
-  local file="$1"
-  if [[ "$file" == *.js ]] && [ -s "$file" ]; then
-    # Verificar se o arquivo tem conteúdo real
-    local first_line=$(head -1 "$file" 2>/dev/null)
-    
-    # Se o arquivo tiver poucas linhas ou parecer vazio
-    if [ $(wc -l < "$file" 2>/dev/null) -lt 5 ]; then
-      echo "0"
-      return
-    fi
-    
-    # Método 1: Contar function declarations
-    local func_count1=$(grep -c -E "^\s*(export\s+)?(async\s+)?function\s+\w+" "$file" 2>/dev/null || echo "0")
-    
-    # Método 2: Contar arrow functions (const/let/var x = () => {})
-    local func_count2=$(grep -c -E "^\s*(export\s+)?(const|let|var)\s+\w+\s*=\s*(async\s+)?\([^)]*\)\s*=>" "$file" 2>/dev/null || echo "0")
-    
-    # Método 3: Contar métodos em classes
-    local func_count3=$(grep -c -E "^\s*\w+\s*\([^)]*\)\s*\{[^}]*\}" "$file" 2>/dev/null || echo "0")
-    
-    # Método 4: Contar funções atribuídas
-    local func_count4=$(grep -c -E "^\s*\w+\s*:\s*(async\s+)?function\s*\(|^\s*\w+\s*:\s*\([^)]*\)\s*=>" "$file" 2>/dev/null || echo "0")
-    
-    # Soma total
-    local total=$((func_count1 + func_count2 + func_count3 + func_count4))
-    
-    # Se ainda for 0, verificar padrões mais simples
-    if [ $total -eq 0 ]; then
-      total=$(grep -c -E "function\s+|=>\s*\{|\([^)]*\)\s*\{[^}]*\}" "$file" 2>/dev/null || echo "0")
-    fi
-    
-    echo "$total"
-  else
-    echo "0"
-  fi
-}
-EOF
-        
-        # AGORA VOU CRIAR UMA VERSÃO SIMPLIFICADA DO SCRIPT COMPLETO
-        # Para evitar problemas, vou mostrar apenas a parte essencial que precisa ser modificada
-        
-        echo "🔧 Criando versão otimizada do relatório..."
-        
-        # Criar o HTML com a função de contagem corrigida
-        cat > generate_report.sh << 'EOF'
-#!/bin/bash
-
-DATE_NOW=$(date '+%d/%m/%Y às %H:%M:%S')
-
-# Função de contagem CORRIGIDA
-count_functions() {
-  local file="$1"
-  if [[ "$file" == *.js ]] && [ -s "$file" ]; then
-    # Verificar conteúdo real
-    local line_count=$(wc -l < "$file" 2>/dev/null)
-    if [ "$line_count" -lt 3 ]; then
-      echo "0"
-      return
-    fi
-    
-    # Múltiplos métodos de detecção
-    local count=0
-    
-    # 1. function declarations tradicionais
-    count=$((count + $(grep -c -E "^\s*function\s+\w+" "$file" 2>/dev/null || echo "0")))
-    
-    # 2. function declarations com export/async
-    count=$((count + $(grep -c -E "^\s*(export\s+|async\s+)*function\s+\w+" "$file" 2>/dev/null || echo "0")))
-    
-    # 3. arrow functions
-    count=$((count + $(grep -c -E "=\s*(async\s+)?\([^)]*\)\s*=>" "$file" 2>/dev/null || echo "0")))
-    
-    # 4. métodos em objetos/classes
-    count=$((count + $(grep -c -E "^\s*\w+\s*\([^)]*\)\s*\{|\w+\s*:\s*function\s*\(" "$file" 2>/dev/null || echo "0")))
-    
-    # 5. funções em módulos ES6 (export default function)
-    count=$((count + $(grep -c -E "export\s+default\s+function" "$file" 2>/dev/null || echo "0")))
-    
-    echo "$count"
-  else
-    echo "0"
-  fi
-}
-
-# Início do HTML
-cat > index.html << HTML_EOF
+        # Criar HTML básico
+        cat > index.html << EOF
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📥 Código Fonte - Imóveis Maceió (COMPLETO)</title>
+<title>📥 Código Fonte - Imóveis Maceió</title>
 <style>
-/* [MESMO CSS ANTERIOR] */
 body { font-family: Arial, sans-serif; background: #0d1117; color: white; margin: 0; padding: 20px; }
 .container { max-width: 1400px; margin: 0 auto; }
 header { text-align: center; padding: 30px 0; border-bottom: 3px solid #2ea44f; margin-bottom: 30px; }
 h1 { color: #2ea44f; font-size: 2.5em; }
 h2 { color: #58a6ff; margin: 30px 0 20px; }
-h3 { color: #f0f6fc; margin: 20px 0 15px; }
-.file-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin: 20px 0; }
-.file-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; transition: transform 0.2s; }
-.file-card:hover { transform: translateY(-2px); border-color: #2ea44f; }
-.file-card h3 { margin-top: 0; color: #58a6ff; display: flex; align-items: center; gap: 10px; }
+.file-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin: 20px 0; }
+.file-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
+.file-card h3 { margin-top: 0; color: #58a6ff; }
 .file-card .js { color: #f1e05a; }
 .file-card .css { color: #563d7c; }
 .file-card .html { color: #e34c26; }
 .file-card .json { color: #f1e05a; opacity: 0.8; }
-.file-info { margin: 10px 0; line-height: 1.6; }
-.file-stats { display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap; }
-.stat-item { background: #21262d; padding: 5px 10px; border-radius: 4px; font-size: 0.85em; display: flex; align-items: center; gap: 5px; }
-.functions-badge { background: #1f6feb; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+.file-info p { margin: 8px 0; }
+.functions-badge { background: #1f6feb; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; }
 .code-viewer { background: #000; padding: 20px; border-radius: 8px; margin: 20px 0; overflow-x: auto; }
 pre { margin: 0; font-family: "Monaco", monospace; font-size: 0.9em; line-height: 1.4; }
 .line-number { color: #6a737d; margin-right: 15px; user-select: none; }
-.comment { color: #6a737d; }
-.string { color: #9ecbff; }
-.keyword { color: #ff7b72; }
-.function { color: #d2a8ff; }
 a { color: #2ea44f; text-decoration: none; }
 a:hover { text-decoration: underline; }
-.complete-badge { background: #238636; color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8em; margin-left: 10px; }
-.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
-.summary-item { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px; text-align: center; }
-.summary-number { font-size: 2em; font-weight: bold; color: #2ea44f; margin: 10px 0; }
-.exact-count { font-size: 2.5em; font-weight: bold; color: #58a6ff; margin: 15px 0; }
-.project-structure { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 25px; margin: 30px 0; }
-.structure-tree { font-family: "Monaco", monospace; font-size: 0.95em; line-height: 1.8; }
-.structure-tree ul { list-style-type: none; padding-left: 20px; }
-.structure-tree li { position: relative; }
-.structure-tree li:before { content: "├── "; color: #6a737d; position: absolute; left: -20px; }
-.structure-tree li:last-child:before { content: "└── "; }
-.structure-tree .folder:before { content: "📁 "; }
-.structure-tree .file:before { content: "📄 "; }
-.structure-tree .file.js:before { content: "📜 "; }
-.structure-tree .file.css:before { content: "🎨 "; }
-.structure-tree .file.json:before { content: "📋 "; }
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 <div class="container">
 <header>
-<h1>📥 Código Fonte Completo <span class="complete-badge">SEM LIMITAÇÕES</span></h1>
-<p>Imóveis Maceió - Extração COMPLETA de TODAS as linhas</p>
+<h1>📥 Código Fonte Completo</h1>
+<p>Imóveis Maceió - Extração completa de todas as linhas</p>
 <p><strong>Gerado em:</strong> $DATE_NOW</p>
 </header>
-HTML_EOF
 
-# ESTRUTURA DO PROJETO
-cat >> index.html << 'HTML_EOF'
-<div class="project-structure">
-<h2>🌳 Estrutura do Projeto</h2>
-<div class="structure-tree">
-<ul>
-<li class="folder">imoveis-maceio/</li>
-<ul>
-HTML_EOF
-
-# Adicionar estrutura (simplificada para o exemplo)
-if [ -f "fonte-completo/index.html" ]; then
-  echo '<li class="file html">index.html</li>' >> index.html
-fi
-
-if [ -d "fonte-completo/css" ]; then
-  echo '<li class="folder">css/</li>' >> index.html
-  echo '<ul>' >> index.html
-  for css in fonte-completo/css/*.css; do
-    [ -f "$css" ] && echo '<li class="file css">'$(basename "$css")'</li>' >> index.html
-  done
-  echo '</ul>' >> index.html
-fi
-
-if [ -d "fonte-completo/js" ]; then
-  echo '<li class="folder">js/</li>' >> index.html
-  echo '<ul>' >> index.html
-  
-  # Arquivos JS na raiz
-  for js in fonte-completo/js/*.js; do
-    [ -f "$js" ] && echo '<li class="file js">'$(basename "$js")'</li>' >> index.html
-  done
-  
-  # Módulos
-  if [ -d "fonte-completo/js/modules" ]; then
-    echo '<li class="folder">modules/</li>' >> index.html
-    echo '<ul>' >> index.html
-    for module in fonte-completo/js/modules/*.js; do
-      [ -f "$module" ] && echo '<li class="file js">'$(basename "$module")'</li>' >> index.html
-    done
-    echo '</ul>' >> index.html
-  fi
-  
-  # Componentes
-  if [ -d "fonte-completo/js/components" ]; then
-    echo '<li class="folder">components/</li>' >> index.html
-    echo '<ul>' >> index.html
-    for component in fonte-completo/js/components/*.js; do
-      [ -f "$component" ] && echo '<li class="file js">'$(basename "$component")'</li>' >> index.html
-    done
-    echo '</ul>' >> index.html
-  fi
-  
-  echo '</ul>' >> index.html
-fi
-
-if [ -f "fonte-completo/report-config.json" ]; then
-  echo '<li class="file json">report-config.json</li>' >> index.html
-fi
-
-cat >> index.html << 'HTML_EOF'
-</ul>
-</ul>
-</div>
-</div>
-HTML_EOF
-
-# LISTA DE ARQUIVOS
-cat >> index.html << 'HTML_EOF'
-<h2>📁 Lista de Arquivos Extraídos (COMPLETO)</h2>
+<h2>📁 Lista de Arquivos Extraídos</h2>
 <div class="file-list">
-HTML_EOF
-
-# Processar todos os arquivos
-for file in fonte-completo/*.html fonte-completo/*.js fonte-completo/*.css fonte-completo/*.json fonte-completo/css/*.css fonte-completo/js/*.js fonte-completo/js/**/*.js 2>/dev/null; do
-  if [ -f "$file" ]; then
-    filename=$(basename "$file")
-    relative_path=${file#fonte-completo/}
-    dir_path=$(dirname "$relative_path")
-    lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-    size=$(wc -c < "$file" 2>/dev/null || echo "0")
-    size_kb=$((size / 1024))
-    
-    # Determinar tipo
-    if [[ "$file" == *.html ]]; then
-      icon="📄"
-      class="html"
-      type="HTML"
-      functions_display="N/A"
-      functions_count=0
-    elif [[ "$file" == *.js ]]; then
-      icon="📜"
-      class="js"
-      type="JavaScript"
-      functions_count=$(count_functions "$file")
-      if [ "$functions_count" -gt 0 ]; then
-        functions_display="<span class='functions-badge'>$functions_count função(ões)</span>"
-      else
-        functions_display="Nenhuma função detectada"
-      fi
-      
-      # Determinar categoria
-      if [[ "$relative_path" == *"modules"* ]]; then
-        type="Módulo JS"
-      elif [[ "$relative_path" == *"components"* ]]; then
-        type="Componente JS"
-      fi
-    elif [[ "$file" == *.css ]]; then
-      icon="🎨"
-      class="css"
-      type="CSS"
-      functions_display="N/A"
-      functions_count=0
-    elif [[ "$file" == *.json ]]; then
-      icon="📋"
-      class="json"
-      type="JSON"
-      functions_display="N/A"
-      functions_count=0
-    else
-      icon="📁"
-      class=""
-      type="Arquivo"
-      functions_display="N/A"
-      functions_count=0
-    fi
-    
-    # Criar card
-    cat >> index.html << FILE_CARD_EOF
-<div class="file-card">
-<h3>$icon <span class="$class">$filename</span> <small style="color: #8b949e; font-size: 0.9em;">($type)</small></h3>
-<div class="file-info">
-<p><strong>📂 Local:</strong> $dir_path</p>
-<p><strong>📊 Linhas:</strong> $lines</p>
-<p><strong>⚡ Funções:</strong> $functions_display</p>
-</div>
-<div class="file-stats">
-<div class="stat-item"><i class="fas fa-bars"></i> $lines linhas</div>
-FILE_CARD_EOF
-    
-    if [ "$functions_count" -gt 0 ]; then
-      echo "<div class=\"stat-item\"><i class=\"fas fa-code\"></i> $functions_count função(ões)</div>" >> index.html
-    fi
-    
-    cat >> index.html << FILE_CARD_EOF2
-<div class="stat-item"><i class="fas fa-weight-hanging"></i> ${size_kb} KB</div>
-</div>
-<p style="margin-top: 15px;"><a href="#file-$(echo "$relative_path" | sed 's/[^a-zA-Z0-9]/_/g')"><i class="fas fa-eye"></i> Ver código COMPLETO →</a></p>
-</div>
-FILE_CARD_EOF2
-  fi
-done
-
-cat >> index.html << 'HTML_EOF'
-</div>
-HTML_EOF
-
-# RESUMO
-TOTAL_FUNCTIONS=0
-for js_file in fonte-completo/js/*.js fonte-completo/js/**/*.js 2>/dev/null; do
-  [ -f "$js_file" ] && TOTAL_FUNCTIONS=$((TOTAL_FUNCTIONS + $(count_functions "$js_file")))
-done
-
-cat >> index.html << HTML_EOF
-<div style="background: #161b22; padding: 25px; border-radius: 10px; margin: 40px 0;">
-<h2>📊 Resumo da Extração</h2>
-<div style="text-align: center; margin: 30px 0;">
-<div class="exact-count">$TOTAL_LINES</div>
-<p><strong>Linhas totais EXATAS</strong></p>
-</div>
-<div class="summary-grid">
-<div class="summary-item">
-<h4>📁 Total de Arquivos</h4>
-<div class="summary-number">$TOTAL_FILES</div>
-<p>Todos os arquivos extraídos</p>
-</div>
-<div class="summary-item">
-<h4>⚡ Funções JS</h4>
-<div class="summary-number">$TOTAL_FUNCTIONS</div>
-<p>Total de funções detectadas</p>
-</div>
-<div class="summary-item">
-<h4>📄 HTML</h4>
-<div class="summary-number">$HTML_COUNT</div>
-<p>Arquivos</p>
-</div>
-<div class="summary-item">
-<h4>📜 JavaScript</h4>
-<div class="summary-number">$JS_COUNT</div>
-<p>Arquivos</p>
-</div>
-<div class="summary-item">
-<h4>🎨 CSS</h4>
-<div class="summary-number">$CSS_COUNT</div>
-<p>Arquivos</p>
-</div>
-<div class="summary-item">
-<h4>📋 JSON</h4>
-<div class="summary-number">$JSON_COUNT</div>
-<p>Arquivos</p>
-</div>
-</div>
-</div>
-HTML_EOF
-
-# CÓDIGO COMPLETO
-cat >> index.html << 'HTML_EOF'
-<h2>📜 Código Fonte COMPLETO (TODAS AS LINHAS)</h2>
-HTML_EOF
-
-# Adicionar código de cada arquivo
-for file in fonte-completo/*.html fonte-completo/*.js fonte-completo/*.css fonte-completo/*.json fonte-completo/css/*.css fonte-completo/js/*.js fonte-completo/js/**/*.js 2>/dev/null; do
-  if [ -f "$file" ]; then
-    filename=$(basename "$file")
-    relative_path=${file#fonte-completo/}
-    file_id="file-$(echo "$relative_path" | sed 's/[^a-zA-Z0-9]/_/g')"
-    lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-    
-    if [[ "$file" == *.html ]]; then
-      icon="📄"
-    elif [[ "$file" == *.js ]]; then
-      icon="📜"
-    elif [[ "$file" == *.css ]]; then
-      icon="🎨"
-    elif [[ "$file" == *.json ]]; then
-      icon="📋"
-    else
-      icon="📁"
-    fi
-    
-    cat >> index.html << CODE_EOF
-<div class="code-viewer" id="$file_id">
-<h3>$icon $relative_path <span class="complete-badge">$lines linhas</span></h3>
-<pre>
-CODE_EOF
-    
-    # Mostrar todas as linhas
-    cat "$file" | cat -n | while read num line; do
-      line_escaped=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
-      echo "<span class='line-number'>$num</span>$line_escaped<br/>" >> index.html
-    done
-    
-    cat >> index.html << 'CODE_EOF'
-</pre>
-</div>
-CODE_EOF
-  fi
-done
-
-# FOOTER
-cat >> index.html << 'HTML_EOF'
-<footer style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #30363d; color: #8b949e;">
-<p><strong>📥 Extração COMPLETA do Código Fonte</strong></p>
-<p>✅ $TOTAL_LINES linhas e $TOTAL_FUNCTIONS funções detectadas</p>
-<p>Gerado automaticamente em $DATE_NOW</p>
-<div style="margin-top: 15px;">
-<a href="https://rclessa25-hub.github.io/imoveis-maceio/" style="color: #2ea44f; margin: 0 10px;">
-<i class="fas fa-external-link-alt"></i> Site Principal
-</a>
-<a href="https://github.com/rclessa25-hub/imoveis-maceio" style="color: #2ea44f; margin: 0 10px;">
-<i class="fab fa-github"></i> Repositório Original
-</a>
-</div>
-</footer>
-</div>
-<script>
-const keywords = ["function", "const", "let", "var", "class", "import", "export", "async", "await", "return", "if", "else", "for", "while", "try", "catch", "throw"];
-document.querySelectorAll(".code-viewer pre").forEach(pre => {
-    let html = pre.innerHTML;
-    keywords.forEach(keyword => {
-        const regex = new RegExp(`\\b${keyword}\\b`, "g");
-        html = html.replace(regex, `<span class="keyword">${keyword}</span>`);
-    });
-    html = html.replace(/(\w+)\s*\(/g, `<span class="function">$1</span>(`);
-    pre.innerHTML = html;
-});
-</script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</body>
-</html>
-HTML_EOF
 EOF
-
-        # Tornar executável e rodar
-        chmod +x generate_report.sh
-        ./generate_report.sh
         
-        echo "✅ Relatório com contagem CORRIGIDA gerado!"
-        
-        # Mostrar estatísticas finais
-        echo ""
-        echo "📈 ESTATÍSTICAS FINAIS:"
-        echo "======================"
-        echo "📁 Total de arquivos: $TOTAL_FILES"
-        echo "📊 Total de linhas: $TOTAL_LINES"
-        
-        # Contar funções totais com a nova função
-        TOTAL_FUNCTIONS=0
-        for js_file in fonte-completo/js/*.js fonte-completo/js/**/*.js 2>/dev/null; do
-          if [ -f "$js_file" ] && [ -s "$js_file" ]; then
-            functions=$(count_functions_accurate "$js_file")
-            TOTAL_FUNCTIONS=$((TOTAL_FUNCTIONS + functions))
-            lines=$(wc -l < "$js_file" 2>/dev/null || echo "0")
-            echo "🔍 $(basename "$js_file"): $lines linhas → $functions funções"
+        # Adicionar cards de arquivos
+        for file in fonte-completo/*.html fonte-completo/css/*.css fonte-completo/js/*.js fonte-completo/js/modules/*.js fonte-completo/js/components/*.js fonte-completo/*.json 2>/dev/null; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            relative_path=${file#fonte-completo/}
+            dir_path=$(dirname "$relative_path")
+            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+            size=$(wc -c < "$file" 2>/dev/null || echo "0")
+            size_kb=$((size / 1024))
+            
+            if [[ "$file" == *.html ]]; then
+              icon="📄"
+              class="html"
+              type="HTML"
+              functions_display="N/A"
+            elif [[ "$file" == *.js ]]; then
+              icon="📜"
+              class="js"
+              functions=$(count_functions_simple "$file")
+              if [[ "$relative_path" == *"modules"* ]]; then
+                type="Módulo JS"
+              elif [[ "$relative_path" == *"components"* ]]; then
+                type="Componente JS"
+              else
+                type="JavaScript"
+              fi
+              if [ "$functions" -gt 0 ]; then
+                functions_display="<span class='functions-badge'>$functions função(ões)</span>"
+              else
+                functions_display="Sem funções detectadas"
+              fi
+            elif [[ "$file" == *.css ]]; then
+              icon="🎨"
+              class="css"
+              type="CSS"
+              functions_display="N/A"
+            elif [[ "$file" == *.json ]]; then
+              icon="📋"
+              class="json"
+              type="JSON"
+              functions_display="N/A"
+            else
+              icon="📁"
+              class=""
+              type="Arquivo"
+              functions_display="N/A"
+            fi
+            
+            cat >> index.html << FILEEOF
+<div class="file-card">
+<h3>$icon <span class="$class">$filename</span></h3>
+<div class="file-info">
+<p><strong>Local:</strong> $dir_path</p>
+<p><strong>Linhas:</strong> $lines</p>
+<p><strong>Funções:</strong> $functions_display</p>
+<p><strong>Tamanho:</strong> ${size_kb} KB</p>
+</div>
+<p><a href="#$(echo "$relative_path" | sed 's/[^a-zA-Z0-9]/_/g')"><i class="fas fa-eye"></i> Ver código completo →</a></p>
+</div>
+FILEEOF
           fi
         done
         
-        echo "⚡ Total de funções JS: $TOTAL_FUNCTIONS"
-        echo "🔸 HTML: $HTML_COUNT arquivos"
-        echo "🔹 JavaScript: $JS_COUNT arquivos"
-        echo "🎨 CSS: $CSS_COUNT arquivos"
-        echo "📋 JSON: $JSON_COUNT arquivos"
+        # Fechar lista e adicionar resumo
+        cat >> index.html << EOF
+</div>
+
+<h2>📊 Resumo da Extração</h2>
+<div style="background: #161b22; padding: 20px; border-radius: 8px;">
+<p><strong>Total de arquivos:</strong> $TOTAL_FILES</p>
+<p><strong>Total de linhas:</strong> $TOTAL_LINES</p>
+<p><strong>Total de funções JS:</strong> $TOTAL_FUNCTIONS</p>
+<p><strong>HTML:</strong> $HTML_COUNT arquivos</p>
+<p><strong>JavaScript:</strong> $JS_COUNT arquivos</p>
+<p><strong>CSS:</strong> $CSS_COUNT arquivos</p>
+<p><strong>JSON:</strong> $JSON_COUNT arquivos</p>
+</div>
+
+<h2>📜 Código Fonte Completo</h2>
+EOF
+        
+        # Adicionar código de cada arquivo
+        for file in fonte-completo/*.html fonte-completo/css/*.css fonte-completo/js/*.js fonte-completo/js/modules/*.js fonte-completo/js/components/*.js fonte-completo/*.json 2>/dev/null; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            relative_path=${file#fonte-completo/}
+            file_id=$(echo "$relative_path" | sed 's/[^a-zA-Z0-9]/_/g')
+            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+            
+            cat >> index.html << CODEEOF
+<div class="code-viewer" id="$file_id">
+<h3>$relative_path ($lines linhas)</h3>
+<pre>
+CODEEOF
+            
+            cat "$file" | cat -n | while read num line; do
+              line_escaped=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+              echo "<span class='line-number'>$num</span>$line_escaped<br/>" >> index.html
+            done
+            
+            cat >> index.html << 'CODEEOF'
+</pre>
+</div>
+CODEEOF
+          fi
+        done
+        
+        # Footer
+        cat >> index.html << 'EOF'
+<footer style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #30363d; color: #8b949e;">
+<p><strong>📥 Extração Completa do Código Fonte</strong></p>
+<p>Gerado automaticamente em '"$DATE_NOW"'</p>
+</footer>
+</div>
+</body>
+</html>
+EOF
+        
+        echo "✅ Relatório gerado com sucesso!"
         echo ""
-        echo "✅ Contagem de funções CORRIGIDA e precisa!"
+        echo "📊 ESTATÍSTICAS:"
+        echo "==============="
+        echo "Arquivos: $TOTAL_FILES"
+        echo "Linhas: $TOTAL_LINES"
+        echo "Funções JS: $TOTAL_FUNCTIONS"
     
     - name: 📦 Upload para GitHub Pages
       uses: actions/upload-pages-artifact@v3
@@ -633,24 +273,18 @@ EOF
     - name: 🚀 Deploy
       uses: actions/deploy-pages@v4
     
-    - name: 🎉 Mostrar resultado FINAL
+    - name: 🎉 Mostrar resultado
       run: |
         echo ""
-        echo "🎉 RELATÓRIO COMPLETO GERADO COM CONTAGEM CORRIGIDA!"
-        echo "===================================================="
+        echo "🎉 RELATÓRIO GERADO COM SUCESSO!"
+        echo "================================"
         echo ""
         echo "🌐 ACESSE EM:"
         echo "https://rclessa25-hub.github.io/reports-wlimoveis/"
         echo ""
-        echo "✅ CORREÇÕES APLICADAS:"
-        echo "1. 🔍 Contagem de funções MELHORADA"
-        echo "2. 📊 Verificação de arquivos vazios/poucas linhas"
-        echo "3. ⚡ Múltiplos métodos de detecção"
-        echo "4. 🎯 Resultados mais precisos"
-        echo "5. 📈 Estatísticas realistas"
-        echo ""
-        echo "📊 AGORA COM:"
-        echo "• Contagem REAL de funções JavaScript"
-        echo "• Detecção de múltiplos tipos de funções"
-        echo "• Filtro de arquivos com pouco conteúdo"
-        echo "• Interface mais limpa e informativa"
+        echo "✅ FUNCIONALIDADES:"
+        echo "• 📁 Lista completa de arquivos"
+        echo "• ⚡ Contagem de funções JavaScript"
+        echo "• 📊 Estatísticas precisas"
+        echo "• 📜 Código completo sem limitações"
+        echo "• 🔄 Atualização automática"
