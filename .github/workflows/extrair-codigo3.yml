@@ -34,10 +34,6 @@ jobs:
     
     - name: 📝 Criar relatório COMPLETO (TODAS AS LINHAS)
       run: |
-        # Criar um script shell para gerar o relatório
-        cat > gerar_relatorio.sh << 'SCRIPT_EOF'
-        #!/bin/bash
-        
         echo "📄 GERANDO RELATÓRIO COMPLETO COM TODAS AS LINHAS..."
         echo "==================================================="
         
@@ -119,8 +115,8 @@ jobs:
         # Criar arquivo HTML
         echo 'Criando estrutura HTML...'
         
-        # Cabeçalho HTML
-        cat > index.html << 'HTML_EOF'
+        # Primeiro, criar o arquivo HTML com o cabeçalho básico usando múltiplos echos
+        cat > index.html << 'EOF'
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -168,9 +164,9 @@ a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
-HTML_EOF
+EOF
         
-        # Adicionar conteúdo principal
+        # Continuar escrevendo no arquivo HTML
         echo '<div class="container">' >> index.html
         echo '<header>' >> index.html
         echo "<h1>📥 Código Fonte COMPLETO <span class=\"complete-badge\">SEM LIMITAÇÕES</span></h1>" >> index.html
@@ -484,14 +480,6 @@ HTML_EOF
         echo "⚡ Funções JavaScript totais: $TOTAL_FUNCTIONS"
         echo ""
         echo "✅ TODAS AS LINHAS FORAM EXTRAÍDAS SEM LIMITAÇÕES"
-        SCRIPT_EOF
-        
-        # Tornar o script executável e executá-lo
-        chmod +x gerar_relatorio.sh
-        ./gerar_relatorio.sh
-        
-        # Limpar arquivo temporário
-        rm -f gerar_relatorio.sh
     
     - name: 📦 Upload para GitHub Pages
       uses: actions/upload-pages-artifact@v3
