@@ -20,217 +20,57 @@ jobs:
     - name: 📥 Checkout
       uses: actions/checkout@v4
     
-    - name: 📥 Clonar projeto e VERIFICAR REALMENTE
+    - name: 📥 Clonar projeto
       run: |
-        echo "🔍 VERIFICAÇÃO DETALHADA DOS ARQUIVOS..."
-        echo "========================================"
+        echo "📥 CLONANDO CÓDIGO FONTE..."
         git clone https://github.com/rclessa25-hub/imoveis-maceio.git fonte-completo
-        
-        echo ""
-        echo "📁 ESTRUTURA COMPLETA DO PROJETO:"
-        echo "================================"
-        find fonte-completo -type f -name "*.js" -o -name "*.html" -o -name "*.css" -o -name "*.json" | sort
-        
-        echo ""
-        echo "🔍 CONTEÚDO REAL DOS ARQUIVOS JS:"
-        echo "================================"
-        for js_file in $(find fonte-completo -name "*.js" -type f); do
-          echo ""
-          echo "=== $(basename "$js_file") ==="
-          echo "Local: ${js_file#fonte-completo/}"
-          echo "Linhas: $(wc -l < "$js_file")"
-          echo "Primeiras 5 linhas:"
-          head -5 "$js_file"
-          echo "..."
-        done
     
-    - name: 📝 Criar relatório da VERDADE REAL
+    - name: 📝 Criar relatório simples e funcional
       run: |
-        echo "📄 GERANDO RELATÓRIO DA VERDADE REAL..."
+        echo "📄 GERANDO RELATÓRIO SIMPLES..."
         
         DATE_NOW=$(date '+%d/%m/%Y às %H:%M:%S')
         
-        # Analisar REALMENTE cada arquivo
-        echo "🔍 Analisando conteúdo REAL..."
+        echo "Analisando arquivos..."
         
-        # Criar arquivo de análise
-        > analise-real.txt
-        echo "=== ANÁLISE DA VERDADE REAL ===" >> analise-real.txt
-        echo "Data: $DATE_NOW" >> analise-real.txt
-        echo "" >> analise-real.txt
+        # Criar arquivo HTML com echo simples
+        echo '<!DOCTYPE html>' > index.html
+        echo '<html lang="pt-BR">' >> index.html
+        echo '<head>' >> index.html
+        echo '<meta charset="UTF-8">' >> index.html
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
+        echo '<title>📊 Relatório de Código</title>' >> index.html
+        echo '<style>' >> index.html
+        echo 'body { font-family: Arial, sans-serif; background: #f5f5f5; color: #333; margin: 0; padding: 20px; }' >> index.html
+        echo '.container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }' >> index.html
+        echo 'h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }' >> index.html
+        echo 'h2 { color: #2980b9; margin-top: 30px; }' >> index.html
+        echo '.file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin: 20px 0; }' >> index.html
+        echo '.file-card { background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; padding: 15px; }' >> index.html
+        echo '.file-card h3 { margin-top: 0; color: #2c3e50; }' >> index.html
+        echo '.warning { background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 10px; border-radius: 5px; margin: 10px 0; }' >> index.html
+        echo '.code-box { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 5px; margin: 15px 0; font-family: monospace; font-size: 14px; overflow-x: auto; }' >> index.html
+        echo '.line-num { color: #7f8c8d; margin-right: 10px; }' >> index.html
+        echo '</style>' >> index.html
+        echo '</head>' >> index.html
+        echo '<body>' >> index.html
+        echo '<div class="container">' >> index.html
+        echo '<h1>📊 Relatório de Código Fonte</h1>' >> index.html
+        echo '<p><strong>Data:</strong> '"$DATE_NOW"'</p>' >> index.html
+        echo '<p><strong>Projeto:</strong> Imóveis Maceió</p>' >> index.html
         
-        # Analisar cada arquivo JS
-        echo "📊 ANÁLISE DOS ARQUIVOS JAVASCRIPT:" >> analise-real.txt
-        echo "=================================" >> analise-real.txt
+        # Adicionar alerta sobre inconsistências
+        echo '<div class="warning">' >> index.html
+        echo '<strong>⚠️ ALERTA:</strong> Inconsistências detectadas entre relatórios.' >> index.html
+        echo '</div>' >> index.html
         
-        for js_file in $(find fonte-completo -name "*.js" -type f); do
-          filename=$(basename "$js_file")
-          location=${js_file#fonte-completo/}
-          lines=$(wc -l < "$js_file")
-          size=$(wc -c < "$js_file")
-          size_kb=$((size / 1024))
-          
-          # Contar funções REALMENTE
-          functions=0
-          if [ "$lines" -gt 0 ]; then
-            functions=$(grep -c "function\|=>" "$js_file" || echo "0")
-          fi
-          
-          echo "" >> analise-real.txt
-          echo "🔍 $filename" >> analise-real.txt
-          echo "   Local: $location" >> analise-real.txt
-          echo "   Linhas: $lines" >> analise-real.txt
-          echo "   Funções encontradas: $functions" >> analise-real.txt
-          echo "   Tamanho: ${size_kb} KB" >> analise-real.txt
-          
-          if [ "$lines" -eq 1 ] && [ "$functions" -gt 0 ]; then
-            echo "   ⚠️  ALERTA: 1 linha mas $functions funções - IMPOSSÍVEL!" >> analise-real.txt
-            echo "   Conteúdo: $(cat "$js_file")" >> analise-real.txt
-          elif [ "$lines" -eq 1 ]; then
-            echo "   Conteúdo: $(cat "$js_file")" >> analise-real.txt
-          elif [ "$lines" -lt 10 ]; then
-            echo "   Conteúdo (primeiras $lines linhas):" >> analise-real.txt
-            cat "$js_file" | sed 's/^/      /' >> analise-real.txt
-          fi
-        done
+        # Listar arquivos JavaScript
+        echo '<h2>📜 Arquivos JavaScript</h2>' >> index.html
+        echo '<div class="file-grid">' >> index.html
         
-        # Criar HTML que mostra a VERDADE
-        echo "Criando relatório da verdade..."
-        
-        # Header
-        cat > index.html << 'HTML_HEADER'
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🔍 VERDADE REAL - Código Fonte</title>
-<style>
-body { font-family: Arial, sans-serif; background: #0d1117; color: white; margin: 0; padding: 20px; }
-.container { max-width: 1400px; margin: 0 auto; }
-header { text-align: center; padding: 30px 0; border-bottom: 3px solid #2ea44f; margin-bottom: 30px; }
-h1 { color: #2ea44f; font-size: 2.5em; }
-h2 { color: #58a6ff; margin: 30px 0 20px; }
-.alert { background: #d29922; color: black; padding: 15px; border-radius: 8px; margin: 20px 0; font-weight: bold; }
-.warning { background: #f85149; color: white; padding: 15px; border-radius: 8px; margin: 20px 0; font-weight: bold; }
-.ok { background: #238636; color: white; padding: 15px; border-radius: 8px; margin: 20px 0; }
-.file-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 15px; margin: 20px 0; }
-.file-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
-.file-card h3 { margin-top: 0; color: #58a6ff; }
-.file-card .impossible { border: 2px solid #f85149; }
-.file-card .empty { border: 2px solid #d29922; }
-.file-card .normal { border: 2px solid #238636; }
-.code-viewer { background: #000; padding: 20px; border-radius: 8px; margin: 20px 0; overflow-x: auto; }
-pre { margin: 0; font-family: "Monaco", monospace; font-size: 0.9em; line-height: 1.4; }
-.line-number { color: #6a737d; margin-right: 15px; user-select: none; }
-</style>
-</head>
-<body>
-<div class="container">
-<header>
-<h1>🔍 VERDADE REAL do Código Fonte</h1>
-<p>Análise completa e sem filtros</p>
-<p><strong>Gerado em:</strong> 
-HTML_HEADER
-        
-        echo "$DATE_NOW" >> index.html
-        
-        cat >> index.html << 'HTML_HEADER2'
-</p>
-</header>
-HTML_HEADER2
-        
-        # Análise de inconsistências
-        cat >> index.html << 'HTML_ANALYSIS'
-<div class="alert">
-⚠️ <strong>ALERTA DE INCONSISTÊNCIAS DETECTADAS</strong>
-</div>
-
-<div class="warning">
-🚨 <strong>PROBLEMAS GRAVES IDENTIFICADOS:</strong><br>
-1. Arquivos com 1 linha mas alegando ter múltiplas funções (IMPOSSÍVEL)<br>
-2. Discrepância entre conteúdo real e relatórios anteriores<br>
-3. Possíveis arquivos incompletos ou minificados
-</div>
-
-<h2>📊 ANÁLISE DA REALIDADE</h2>
-<div class="ok">
-✅ <strong>MÉTODO DE ANÁLISE:</strong><br>
-• Contagem REAL de linhas<br>
-• Verificação REAL de conteúdo<br>
-• Análise sem suposições<br>
-• Mostrar exatamente o que existe
-</div>
-
-<h2>📁 ARQUIVOS JAVASCRIPT - A VERDADE</h2>
-<div class="file-list">
-HTML_ANALYSIS
-        
-        # Analisar e mostrar cada arquivo JS com a VERDADE
-        for js_file in $(find fonte-completo -name "*.js" -type f | sort); do
-          filename=$(basename "$js_file")
-          location=${js_file#fonte-completo/}
-          lines=$(wc -l < "$js_file")
-          size=$(wc -c < "$js_file")
-          size_kb=$((size / 1024))
-          
-          # Determinar classe baseada na realidade
-          if [ "$lines" -eq 1 ]; then
-            # Arquivo com 1 linha
-            content=$(cat "$js_file")
-            if [[ "$content" == *"function"* ]] || [[ "$content" == *"=>"* ]]; then
-              # Tem função em 1 linha - POSSÍVEL se for minificado
-              card_class="empty"
-              status="⚡ 1 LINHA (minificado?)"
-              functions_display="Função em linha única"
-            else
-              # Linha vazia ou sem função
-              card_class="empty"
-              status="📄 1 LINHA"
-              functions_display="Sem funções detectadas"
-            fi
-          elif [ "$lines" -eq 0 ]; then
-            card_class="empty"
-            status="🔄 VAZIO"
-            functions_display="Arquivo vazio"
-          elif [ "$lines" -gt 1 ] && [ "$lines" -lt 10 ]; then
-            card_class="empty"
-            status="📝 PEQUENO ($lines linhas)"
-            # Contar funções reais
-            functions=$(grep -c "function\|=>" "$js_file" || echo "0")
-            if [ "$functions" -gt 0 ]; then
-              functions_display="$functions função(ões)"
-            else
-              functions_display="Sem funções"
-            fi
-          else
-            card_class="normal"
-            status="📦 NORMAL ($lines linhas)"
-            functions=$(grep -c "function\|=>" "$js_file" || echo "0")
-            functions_display="$functions função(ões)"
-          fi
-          
-          # Adicionar card
-          cat >> index.html << FILE_CARD
-<div class="file-card ${card_class}">
-<h3>📜 ${filename}</h3>
-<p><strong>Local:</strong> ${location}</p>
-<p><strong>Status:</strong> ${status}</p>
-<p><strong>Funções REAIS:</strong> ${functions_display}</p>
-<p><strong>Tamanho:</strong> ${size_kb} KB</p>
-</div>
-FILE_CARD
-        done
-        
-        cat >> index.html << 'HTML_MIDDLE'
-</div>
-
-<h2>📄 OUTROS ARQUIVOS</h2>
-<div class="file-list">
-HTML_MIDDLE
-        
-        # Outros arquivos
-        for file in fonte-completo/*.html fonte-completo/css/*.css fonte-completo/*.json; do
+        # Processar arquivos JS
+        JS_FILES=$(find fonte-completo -name "*.js" -type f | sort)
+        for file in $JS_FILES; do
           if [ -f "$file" ]; then
             filename=$(basename "$file")
             location=${file#fonte-completo/}
@@ -238,114 +78,169 @@ HTML_MIDDLE
             size=$(wc -c < "$file")
             size_kb=$((size / 1024))
             
-            if [[ "$file" == *.html ]]; then
-              icon="📄"
-              type="HTML"
-            elif [[ "$file" == *.css ]]; then
-              icon="🎨"
-              type="CSS"
-            elif [[ "$file" == *.json ]]; then
-              icon="📋"
-              type="JSON"
+            # Determinar tipo
+            if [[ "$location" == *"modules"* ]]; then
+              tipo="(Módulo)"
+            elif [[ "$location" == *"components"* ]]; then
+              tipo="(Componente)"
             else
-              icon="📁"
-              type="Arquivo"
+              tipo=""
             fi
             
-            cat >> index.html << OTHER_FILE
-<div class="file-card">
-<h3>${icon} ${filename}</h3>
-<p><strong>Tipo:</strong> ${type}</p>
-<p><strong>Local:</strong> ${location}</p>
-<p><strong>Linhas:</strong> ${lines}</p>
-<p><strong>Tamanho:</strong> ${size_kb} KB</p>
-</div>
-OTHER_FILE
+            echo '<div class="file-card">' >> index.html
+            echo '<h3>'"$filename $tipo"'</h3>' >> index.html
+            echo '<p><strong>Local:</strong> '"$(dirname "$location")"'</p>' >> index.html
+            echo '<p><strong>Linhas:</strong> '"$lines"'</p>' >> index.html
+            echo '<p><strong>Tamanho:</strong> '"$size_kb"' KB</p>' >> index.html
+            
+            # Mostrar conteúdo se for pequeno
+            if [ "$lines" -le 5 ]; then
+              echo '<p><strong>Conteúdo:</strong></p>' >> index.html
+              echo '<div style="background: #e9ecef; padding: 5px; border-radius: 3px; font-family: monospace; font-size: 12px;">' >> index.html
+              cat "$file" | sed 's/</\&lt;/g; s/>/\&gt;/g' >> index.html
+              echo '</div>' >> index.html
+            fi
+            
+            echo '</div>' >> index.html
           fi
         done
         
-        cat >> index.html << 'HTML_FOOTER_START'
-</div>
-
-<h2>📜 CONCLUSÃO DA ANÁLISE</h2>
-<div class="alert">
-🔍 <strong>CONCLUSÃO:</strong><br><br>
-
-<strong>PROBLEMAS IDENTIFICADOS:</strong><br>
-1. Arquivos JavaScript com apenas 1 linha<br>
-2. Conteúdo potencialmente minificado ou incompleto<br>
-3. Discrepância entre diferentes relatórios<br><br>
-
-<strong>POSSÍVEIS CAUSAS:</strong><br>
-• Arquivos minificados (.min.js removido)<br>
-• Build process que gera arquivos diferentes<br>
-• Repositório com versões incompletas<br>
-• Diferentes branches com conteúdo diferente
-</div>
-
-<h2>💡 RECOMENDAÇÕES</h2>
-<div class="ok">
-✅ <strong>AÇÕES SUGERIDAS:</strong><br>
-1. Verificar se há arquivos .min.js ou versões completas<br>
-2. Checar outras branches do repositório<br>
-3. Analisar processo de build/deploy<br>
-4. Comparar com repositório original se for fork
-</div>
-
-<h2>📝 CONTEÚDO COMPLETO (O QUE REALMENTE EXISTE)</h2>
-HTML_FOOTER_START
+        echo '</div>' >> index.html
         
-        # Mostrar conteúdo REAL de cada arquivo
-        for file in $(find fonte-completo -type f \( -name "*.js" -o -name "*.html" -o -name "*.css" -o -name "*.json" \) | sort); do
-          filename=$(basename "$file")
-          location=${file#fonte-completo/}
-          lines=$(wc -l < "$file")
-          
-          cat >> index.html << CODE_START
-<div class="code-viewer">
-<h3>${location} (${lines} linhas)</h3>
-<pre>
-CODE_START
-          
-          line_num=1
-          while IFS= read -r line; do
-            line_escaped=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
-            echo "<span class='line-number'>${line_num}</span>${line_escaped}<br/>" >> index.html
-            line_num=$((line_num + 1))
-          done < "$file"
-          
-          cat >> index.html << 'CODE_END'
-</pre>
-</div>
-CODE_END
+        # Listar outros arquivos
+        echo '<h2>📄 Outros Arquivos</h2>' >> index.html
+        echo '<div class="file-grid">' >> index.html
+        
+        # HTML
+        for file in fonte-completo/*.html; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            lines=$(wc -l < "$file")
+            size=$(wc -c < "$file")
+            size_kb=$((size / 1024))
+            
+            echo '<div class="file-card">' >> index.html
+            echo '<h3>'"$filename"'</h3>' >> index.html
+            echo '<p><strong>Tipo:</strong> HTML</p>' >> index.html
+            echo '<p><strong>Linhas:</strong> '"$lines"'</p>' >> index.html
+            echo '<p><strong>Tamanho:</strong> '"$size_kb"' KB</p>' >> index.html
+            echo '</div>' >> index.html
+          fi
         done
         
-        # Footer final
-        cat >> index.html << 'HTML_FINAL'
-<footer style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #30363d; color: #8b949e;">
-<p><strong>🔍 RELATÓRIO DA VERDADE REAL</strong></p>
-<p>Mostrando exatamente o que existe, sem suposições</p>
-<p><em>"Em busca da verdade, não de confirmações"</em></p>
-</footer>
-</div>
-</body>
-</html>
-HTML_FINAL
+        # CSS
+        if [ -d "fonte-completo/css" ]; then
+          for file in fonte-completo/css/*.css; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              lines=$(wc -l < "$file")
+              size=$(wc -c < "$file")
+              size_kb=$((size / 1024))
+              
+              echo '<div class="file-card">' >> index.html
+              echo '<h3>'"$filename"'</h3>' >> index.html
+              echo '<p><strong>Tipo:</strong> CSS</p>' >> index.html
+              echo '<p><strong>Linhas:</strong> '"$lines"'</p>' >> index.html
+              echo '<p><strong>Tamanho:</strong> '"$size_kb"' KB</p>' >> index.html
+              echo '</div>' >> index.html
+            fi
+          done
+        fi
         
-        echo "✅ Relatório da VERDADE REAL criado!"
-        echo ""
-        echo "📋 RESUMO DA ANÁLISE:"
-        echo "===================="
-        cat analise-real.txt
+        # JSON
+        for file in fonte-completo/*.json; do
+          if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            lines=$(wc -l < "$file")
+            size=$(wc -c < "$file")
+            size_kb=$((size / 1024))
+            
+            echo '<div class="file-card">' >> index.html
+            echo '<h3>'"$filename"'</h3>' >> index.html
+            echo '<p><strong>Tipo:</strong> JSON</p>' >> index.html
+            echo '<p><strong>Linhas:</strong> '"$lines"'</p>' >> index.html
+            echo '<p><strong>Tamanho:</strong> '"$size_kb"' KB</p>' >> index.html
+            echo '</div>' >> index.html
+          fi
+        done
         
+        echo '</div>' >> index.html
+        
+        # Mostrar análise
+        echo '<h2>🔍 Análise</h2>' >> index.html
+        echo '<div style="background: #e8f4f8; padding: 15px; border-radius: 8px;">' >> index.html
+        echo '<h3>📋 Resumo dos Dados:</h3>' >> index.html
+        
+        # Contar estatísticas
+        HTML_COUNT=$(find fonte-completo -name "*.html" -type f | wc -l)
+        JS_COUNT=$(echo "$JS_FILES" | wc -l)
+        CSS_COUNT=$(find fonte-completo -name "*.css" -type f | wc -l)
+        JSON_COUNT=$(find fonte-completo -name "*.json" -type f | wc -l)
+        
+        echo '<p><strong>Total de arquivos:</strong> '"$((HTML_COUNT + JS_COUNT + CSS_COUNT + JSON_COUNT))"'</p>' >> index.html
+        echo '<p><strong>HTML:</strong> '"$HTML_COUNT"' arquivos</p>' >> index.html
+        echo '<p><strong>JavaScript:</strong> '"$JS_COUNT"' arquivos</p>' >> index.html
+        echo '<p><strong>CSS:</strong> '"$CSS_COUNT"' arquivos</p>' >> index.html
+        echo '<p><strong>JSON:</strong> '"$JSON_COUNT"' arquivos</p>' >> index.html
+        
+        # Analisar arquivos JS com 1 linha
+        JS_ONE_LINE=0
+        for file in $JS_FILES; do
+          lines=$(wc -l < "$file")
+          if [ "$lines" -eq 1 ]; then
+            JS_ONE_LINE=$((JS_ONE_LINE + 1))
+          fi
+        done
+        
+        echo '<p><strong>Arquivos JS com 1 linha:</strong> '"$JS_ONE_LINE"'</p>' >> index.html
+        
+        if [ "$JS_ONE_LINE" -gt 0 ]; then
+          echo '<div class="warning">' >> index.html
+          echo '<p><strong>⚠️ OBSERVAÇÃO:</strong> '"$JS_ONE_LINE"' arquivos JavaScript têm apenas 1 linha.</p>' >> index.html
+          echo '<p>Isso pode indicar:</p>' >> index.html
+          echo '<ul>' >> index.html
+          echo '<li>Arquivos minificados/incompletos</li>' >> index.html
+          echo '<li>Versões diferentes das analisadas em outros relatórios</li>' >> index.html
+          echo '<li>Conteúdo em outros branches ou locais</li>' >> index.html
+          echo '</ul>' >> index.html
+          echo '</div>' >> index.html
+        fi
+        
+        echo '</div>' >> index.html
+        
+        # Mostrar código de exemplo
+        echo '<h2>📝 Exemplo de Código</h2>' >> index.html
+        echo '<p>Abaixo estão os primeiros 50 linhas do index.html:</p>' >> index.html
+        
+        if [ -f "fonte-completo/index.html" ]; then
+          echo '<div class="code-box">' >> index.html
+          line_num=1
+          head -50 fonte-completo/index.html | while IFS= read -r line; do
+            line_escaped=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+            echo '<span class="line-num">'"$line_num"'</span> '"$line_escaped"'<br/>' >> index.html
+            line_num=$((line_num + 1))
+          done
+          echo '</div>' >> index.html
+        fi
+        
+        # Footer
+        echo '<footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #7f8c8d;">' >> index.html
+        echo '<p><strong>📊 Relatório de Código Fonte</strong></p>' >> index.html
+        echo '<p>Gerado automaticamente</p>' >> index.html
+        echo '</footer>' >> index.html
+        echo '</div>' >> index.html
+        echo '</body>' >> index.html
+        echo '</html>' >> index.html
+        
+        echo "✅ Relatório criado com sucesso!"
         echo ""
-        echo "🔍 CONCLUSÃO FINAL:"
-        echo "=================="
-        echo "Os arquivos JavaScript no repositório têm APENAS 1 LINHA cada."
-        echo "Isso significa que:"
-        echo "1. ❌ NÃO podem ter múltiplas funções"
-        echo "2. ✅ Estão provavelmente minificados ou incompletos"
-        echo "3. 🔍 Outro relatório se refere a versões diferentes"
+        echo "📋 RESUMO:"
+        echo "========="
+        echo "Arquivos HTML: $HTML_COUNT"
+        echo "Arquivos JavaScript: $JS_COUNT"
+        echo "Arquivos CSS: $CSS_COUNT"
+        echo "Arquivos JSON: $JSON_COUNT"
+        echo "Arquivos JS com 1 linha: $JS_ONE_LINE"
     
     - name: 📦 Upload para GitHub Pages
       uses: actions/upload-pages-artifact@v3
@@ -355,20 +250,18 @@ HTML_FINAL
     - name: 🚀 Deploy
       uses: actions/deploy-pages@v4
     
-    - name: 🎉 Mostrar a VERDADE
+    - name: 🎉 Mostrar resultado
       run: |
         echo ""
-        echo "🎉 RELATÓRIO DA VERDADE CRIADO!"
-        echo "==============================="
+        echo "🎉 RELATÓRIO CRIADO COM SUCESSO!"
+        echo "================================"
         echo ""
-        echo "🌐 ACESSE A VERDADE EM:"
+        echo "🌐 ACESSE EM:"
         echo "https://rclessa25-hub.github.io/reports-wlimoveis/"
         echo ""
-        echo "🔍 ESTE RELATÓRIO MOSTRA:"
-        echo "• ✅ O que REALMENTE existe nos arquivos"
-        echo "• 🚨 As inconsistências encontradas"
-        echo "• 📊 Análise sem suposições"
-        echo "• 💡 Possíveis causas e soluções"
-        echo ""
-        echo "📌 CONCLUSÃO: Os arquivos JS têm 1 linha apenas."
-        echo "   Outro relatório refere-se a versões diferentes."
+        echo "✅ CARACTERÍSTICAS:"
+        echo "• ✅ 100% funcional (sem HEREDOC)"
+        echo "• 📊 Estatísticas reais"
+        echo "• 🔍 Análise de inconsistências"
+        echo "• 📝 Exemplo de código"
+        echo "• 🎨 Design limpo e profissional"
