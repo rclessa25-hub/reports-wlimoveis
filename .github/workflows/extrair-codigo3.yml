@@ -24,28 +24,28 @@ jobs:
       run: |
         git clone https://github.com/rclessa25-hub/imoveis-maceio.git fonte-completo
     
-    - name: 📝 Gerar relatório HTML
+    - name: 📝 Criar relatório
       run: |
-        # Data atual
-        DATE=$(date '+%d/%m/%Y %H:%M:%S')
+        echo "Iniciando criação do relatório..."
         
-        # Iniciar arquivo HTML
+        # Data atual
+        DATE_NOW=$(date '+%d/%m/%Y %H:%M:%S')
+        
+        # Criar arquivo HTML inicial
         echo '<!DOCTYPE html>' > index.html
         echo '<html lang="pt-BR">' >> index.html
         echo '<head>' >> index.html
         echo '<meta charset="UTF-8">' >> index.html
         echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
-        echo '<title>Código Fonte Completo - Imóveis Maceió</title>' >> index.html
+        echo '<title>Código Fonte Completo</title>' >> index.html
         echo '<style>' >> index.html
-        echo 'body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #0d1117; color: white; }' >> index.html
+        echo 'body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }' >> index.html
         echo '.container { max-width: 1200px; margin: 0 auto; }' >> index.html
-        echo 'header { background: #161b22; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #30363d; }' >> index.html
-        echo '.stats { background: #161b22; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #30363d; }' >> index.html
-        echo '.file-section { background: #0a0e14; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #30363d; }' >> index.html
-        echo 'pre { margin: 0; font-family: monospace; white-space: pre-wrap; }' >> index.html
+        echo 'header { background: #2c3e50; color: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; }' >> index.html
+        echo '.code-block { background: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }' >> index.html
+        echo 'pre { margin: 0; font-family: monospace; overflow-x: auto; }' >> index.html
         echo '.line { margin: 2px 0; }' >> index.html
-        echo '.num { color: #6a737d; margin-right: 15px; }' >> index.html
-        echo 'a { color: #58a6ff; }' >> index.html
+        echo '.num { color: #666; margin-right: 15px; }' >> index.html
         echo '</style>' >> index.html
         echo '</head>' >> index.html
         echo '<body>' >> index.html
@@ -54,151 +54,174 @@ jobs:
         # Cabeçalho
         echo '<header>' >> index.html
         echo '<h1>📥 Código Fonte COMPLETO</h1>' >> index.html
-        echo '<p>Imóveis Maceió - Todas as linhas extraídas</p>' >> index.html
-        echo "<p>Gerado: $DATE</p>" >> index.html
+        echo '<p>Imóveis Maceió - Extração completa</p>' >> index.html
+        echo "<p>Gerado em: $DATE_NOW</p>" >> index.html
         echo '</header>' >> index.html
         
-        # Estatísticas
-        echo '<div class="stats">' >> index.html
+        # Contar estatísticas
+        echo "Calculando estatísticas..."
+        
+        # Lista de arquivos
         echo '<h2>📊 Estatísticas</h2>' >> index.html
+        echo '<div class="code-block">' >> index.html
         
-        # Contar arquivos e linhas
-        TOTAL_LINES=0
-        HTML_COUNT=0
-        JS_COUNT=0
-        CSS_COUNT=0
-        JSON_COUNT=0
+        # Procurar arquivos HTML
+        html_files=$(find fonte-completo -name "*.html" -type f)
+        html_count=$(echo "$html_files" | wc -l)
         
-        # Processar HTML
-        for file in fonte-completo/*.html fonte-completo/**/*.html 2>/dev/null; do
+        # Procurar arquivos JS
+        js_files=$(find fonte-completo -name "*.js" -type f)
+        js_count=$(echo "$js_files" | wc -l)
+        
+        # Procurar arquivos CSS
+        css_files=$(find fonte-completo -name "*.css" -type f)
+        css_count=$(echo "$css_files" | wc -l)
+        
+        # Procurar arquivos JSON
+        json_files=$(find fonte-completo -name "*.json" -type f)
+        json_count=$(echo "$json_files" | wc -l)
+        
+        total_files=$((html_count + js_count + css_count + json_count))
+        
+        # Contar linhas totais
+        total_lines=0
+        
+        for file in $html_files; do
           if [ -f "$file" ]; then
-            HTML_COUNT=$((HTML_COUNT + 1))
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            TOTAL_LINES=$((TOTAL_LINES + lines))
+            lines=$(wc -l < "$file")
+            total_lines=$((total_lines + lines))
           fi
         done
         
-        # Processar JS
-        for file in fonte-completo/*.js fonte-completo/**/*.js 2>/dev/null; do
+        for file in $js_files; do
           if [ -f "$file" ]; then
-            JS_COUNT=$((JS_COUNT + 1))
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            TOTAL_LINES=$((TOTAL_LINES + lines))
+            lines=$(wc -l < "$file")
+            total_lines=$((total_lines + lines))
           fi
         done
         
-        # Processar CSS
-        for file in fonte-completo/*.css fonte-completo/**/*.css 2>/dev/null; do
+        for file in $css_files; do
           if [ -f "$file" ]; then
-            CSS_COUNT=$((CSS_COUNT + 1))
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            TOTAL_LINES=$((TOTAL_LINES + lines))
+            lines=$(wc -l < "$file")
+            total_lines=$((total_lines + lines))
           fi
         done
         
-        # Processar JSON
-        for file in fonte-completo/*.json fonte-completo/**/*.json 2>/dev/null; do
+        for file in $json_files; do
           if [ -f "$file" ]; then
-            JSON_COUNT=$((JSON_COUNT + 1))
-            lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-            TOTAL_LINES=$((TOTAL_LINES + lines))
+            lines=$(wc -l < "$file")
+            total_lines=$((total_lines + lines))
           fi
         done
         
-        TOTAL_FILES=$((HTML_COUNT + JS_COUNT + CSS_COUNT + JSON_COUNT))
-        
-        echo "<p><strong>Total de linhas:</strong> $TOTAL_LINES</p>" >> index.html
-        echo "<p><strong>Total de arquivos:</strong> $TOTAL_FILES</p>" >> index.html
-        echo "<p><strong>HTML:</strong> $HTML_COUNT arquivos</p>" >> index.html
-        echo "<p><strong>JavaScript:</strong> $JS_COUNT arquivos</p>" >> index.html
-        echo "<p><strong>CSS:</strong> $CSS_COUNT arquivos</p>" >> index.html
-        echo "<p><strong>JSON:</strong> $JSON_COUNT arquivos</p>" >> index.html
-        echo '<p><strong>Status:</strong> <span style="color: #3fb950;">✅ Completo - Sem limitações</span></p>' >> index.html
+        echo "<p><strong>Total de linhas:</strong> $total_lines</p>" >> index.html
+        echo "<p><strong>Total de arquivos:</strong> $total_files</p>" >> index.html
+        echo "<p><strong>Arquivos HTML:</strong> $html_count</p>" >> index.html
+        echo "<p><strong>Arquivos JavaScript:</strong> $js_count</p>" >> index.html
+        echo "<p><strong>Arquivos CSS:</strong> $css_count</p>" >> index.html
+        echo "<p><strong>Arquivos JSON:</strong> $json_count</p>" >> index.html
+        echo '<p><strong>Status:</strong> ✅ Completo - Todas as linhas extraídas</p>' >> index.html
         echo '</div>' >> index.html
         
-        # Mostrar código de cada arquivo
-        echo '<h2>📜 Código Fonte Completo</h2>' >> index.html
-        echo '<p>Todas as linhas de todos os arquivos:</p>' >> index.html
-        
-        # HTML files
-        if [ $HTML_COUNT -gt 0 ]; then
-          echo '<h3>🌐 Arquivos HTML</h3>' >> index.html
-          for file in fonte-completo/*.html fonte-completo/**/*.html 2>/dev/null; do
+        # Mostrar código HTML
+        if [ $html_count -gt 0 ]; then
+          echo '<h2>🌐 Arquivos HTML</h2>' >> index.html
+          for file in $html_files; do
             if [ -f "$file" ]; then
               filename=$(basename "$file")
-              echo "<div class='file-section'>" >> index.html
-              echo "<h4>$filename</h4>" >> index.html
+              echo "<div class='code-block'>" >> index.html
+              echo "<h3>$filename</h3>" >> index.html
               echo '<pre>' >> index.html
+              
               line_num=1
               while IFS= read -r line; do
-                # Escapar HTML
-                line=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/\"/\&quot;/g')
+                # Escapar caracteres HTML
+                line=$(echo "$line" | sed 's/&/\&amp;/g')
+                line=$(echo "$line" | sed 's/</\&lt;/g')
+                line=$(echo "$line" | sed 's/>/\&gt;/g')
+                
                 echo "<div class='line'><span class='num'>$line_num</span>$line</div>" >> index.html
                 line_num=$((line_num + 1))
               done < "$file"
+              
               echo '</pre>' >> index.html
               echo '</div>' >> index.html
             fi
           done
         fi
         
-        # JS files
-        if [ $JS_COUNT -gt 0 ]; then
-          echo '<h3>📜 Arquivos JavaScript</h3>' >> index.html
-          for file in fonte-completo/*.js fonte-completo/**/*.js 2>/dev/null; do
+        # Mostrar código JavaScript
+        if [ $js_count -gt 0 ]; then
+          echo '<h2>📜 Arquivos JavaScript</h2>' >> index.html
+          for file in $js_files; do
             if [ -f "$file" ]; then
               filename=$(basename "$file")
-              echo "<div class='file-section'>" >> index.html
-              echo "<h4>$filename</h4>" >> index.html
+              echo "<div class='code-block'>" >> index.html
+              echo "<h3>$filename</h3>" >> index.html
               echo '<pre>' >> index.html
+              
               line_num=1
               while IFS= read -r line; do
-                line=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/\"/\&quot;/g')
+                line=$(echo "$line" | sed 's/&/\&amp;/g')
+                line=$(echo "$line" | sed 's/</\&lt;/g')
+                line=$(echo "$line" | sed 's/>/\&gt;/g')
+                
                 echo "<div class='line'><span class='num'>$line_num</span>$line</div>" >> index.html
                 line_num=$((line_num + 1))
               done < "$file"
+              
               echo '</pre>' >> index.html
               echo '</div>' >> index.html
             fi
           done
         fi
         
-        # CSS files
-        if [ $CSS_COUNT -gt 0 ]; then
-          echo '<h3>🎨 Arquivos CSS</h3>' >> index.html
-          for file in fonte-completo/*.css fonte-completo/**/*.css 2>/dev/null; do
+        # Mostrar código CSS
+        if [ $css_count -gt 0 ]; then
+          echo '<h2>🎨 Arquivos CSS</h2>' >> index.html
+          for file in $css_files; do
             if [ -f "$file" ]; then
               filename=$(basename "$file")
-              echo "<div class='file-section'>" >> index.html
-              echo "<h4>$filename</h4>" >> index.html
+              echo "<div class='code-block'>" >> index.html
+              echo "<h3>$filename</h3>" >> index.html
               echo '<pre>' >> index.html
+              
               line_num=1
               while IFS= read -r line; do
-                line=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/\"/\&quot;/g')
+                line=$(echo "$line" | sed 's/&/\&amp;/g')
+                line=$(echo "$line" | sed 's/</\&lt;/g')
+                line=$(echo "$line" | sed 's/>/\&gt;/g')
+                
                 echo "<div class='line'><span class='num'>$line_num</span>$line</div>" >> index.html
                 line_num=$((line_num + 1))
               done < "$file"
+              
               echo '</pre>' >> index.html
               echo '</div>' >> index.html
             fi
           done
         fi
         
-        # JSON files
-        if [ $JSON_COUNT -gt 0 ]; then
-          echo '<h3>📋 Arquivos JSON</h3>' >> index.html
-          for file in fonte-completo/*.json fonte-completo/**/*.json 2>/dev/null; do
+        # Mostrar código JSON
+        if [ $json_count -gt 0 ]; then
+          echo '<h2>📋 Arquivos JSON</h2>' >> index.html
+          for file in $json_files; do
             if [ -f "$file" ]; then
               filename=$(basename "$file")
-              echo "<div class='file-section'>" >> index.html
-              echo "<h4>$filename</h4>" >> index.html
+              echo "<div class='code-block'>" >> index.html
+              echo "<h3>$filename</h3>" >> index.html
               echo '<pre>' >> index.html
+              
               line_num=1
               while IFS= read -r line; do
-                line=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/\"/\&quot;/g')
+                line=$(echo "$line" | sed 's/&/\&amp;/g')
+                line=$(echo "$line" | sed 's/</\&lt;/g')
+                line=$(echo "$line" | sed 's/>/\&gt;/g')
+                
                 echo "<div class='line'><span class='num'>$line_num</span>$line</div>" >> index.html
                 line_num=$((line_num + 1))
               done < "$file"
+              
               echo '</pre>' >> index.html
               echo '</div>' >> index.html
             fi
@@ -206,27 +229,25 @@ jobs:
         fi
         
         # Rodapé
-        echo '<footer style="margin-top: 40px; padding: 20px; background: #161b22; border-radius: 8px; text-align: center;">' >> index.html
-        echo "<h3>✅ Extração Completa</h3>" >> index.html
-        echo "<p>$TOTAL_LINES linhas em $TOTAL_FILES arquivos</p>" >> index.html
-        echo "<p>Todas as linhas extraídas - Sem limitações</p>" >> index.html
-        echo "<p>Gerado: $DATE</p>" >> index.html
+        echo '<div class="code-block" style="text-align: center;">' >> index.html
+        echo '<h3>✅ Extração Completa</h3>' >> index.html
+        echo "<p>$total_lines linhas em $total_files arquivos</p>" >> index.html
+        echo '<p>Todas as linhas foram extraídas sem limitações</p>' >> index.html
+        echo "<p>Gerado em: $DATE_NOW</p>" >> index.html
         echo '<p>' >> index.html
-        echo '<a href="https://rclessa25-hub.github.io/imoveis-maceio/">Site Principal</a>' >> index.html
-        echo ' | ' >> index.html
-        echo '<a href="https://github.com/rclessa25-hub/imoveis-maceio">Repositório</a>' >> index.html
+        echo '<a href="https://rclessa25-hub.github.io/imoveis-maceio/">Visitar site principal</a>' >> index.html
         echo '</p>' >> index.html
-        echo '</footer>' >> index.html
+        echo '</div>' >> index.html
         
         echo '</div>' >> index.html
         echo '</body>' >> index.html
         echo '</html>' >> index.html
         
-        echo "✅ Relatório criado!"
-        echo "Linhas: $TOTAL_LINES"
-        echo "Arquivos: $TOTAL_FILES"
+        echo "✅ Relatório criado com sucesso!"
+        echo "Total de linhas: $total_lines"
+        echo "Total de arquivos: $total_files"
     
-    - name: 📦 Upload para Pages
+    - name: 📦 Upload para GitHub Pages
       uses: actions/upload-pages-artifact@v3
       with:
         path: '.'
@@ -234,16 +255,20 @@ jobs:
     - name: 🚀 Deploy
       uses: actions/deploy-pages@v4
     
-    - name: 🎉 Mostrar link
+    - name: 🎉 Mostrar resultado
       run: |
         echo ""
-        echo "✅ RELATÓRIO GERADO!"
-        echo "===================="
+        echo "🎉 RELATÓRIO CRIADO COM SUCESSO!"
+        echo "================================"
+        echo ""
+        echo "✅ Extração completa realizada"
+        echo "✅ Todas as linhas extraídas"
+        echo "✅ Sem limitações de visualização"
+        echo ""
         echo "🌐 Disponível em:"
         echo "https://rclessa25-hub.github.io/reports-wlimoveis/"
         echo ""
-        echo "📊 Extração completa:"
-        echo "- Todas as linhas extraídas"
-        echo "- Sem limitações de visualização"
-        echo "- Design responsivo"
-        echo "- Navegação fácil"
+        echo "📊 Estatísticas:"
+        echo "- Linhas totais: $total_lines"
+        echo "- Arquivos totais: $total_files"
+        echo "- Extração: 100% completa"
