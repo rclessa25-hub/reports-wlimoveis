@@ -1,0 +1,546 @@
+name: 🏗️ Hierarquia Modular
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  generate-hierarchy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+    
+    - name: 📥 Baixar projeto
+      run: |
+        echo "🏗️ BAIXANDO PROJETO..."
+        git clone https://github.com/rclessa25-hub/imoveis-maceio.git projeto-modular
+        
+        echo "📊 ESTRUTURA ENCONTRADA:"
+        find projeto-modular -type f -name "*.html" -o -name "*.js" -o -name "*.css" | sort
+    
+    - name: 📝 Criar relatório hierárquico
+      run: |
+        echo "📄 CRIANDO RELATÓRIO HIERÁRQUICO..."
+        
+        DATE_NOW=$(date '+%d/%m/%Y às %H:%M:%S')
+        
+        # Criar HTML
+        echo '<!DOCTYPE html>' > index.html
+        echo '<html lang="pt-BR">' >> index.html
+        echo '<head>' >> index.html
+        echo '<meta charset="UTF-8">' >> index.html
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
+        echo '<title>🏗️ Hierarquia Modular - Imóveis Maceió</title>' >> index.html
+        echo '<style>' >> index.html
+        echo ':root {' >> index.html
+        echo '    --primary: #2ea44f;' >> index.html
+        echo '    --dark: #0d1117;' >> index.html
+        echo '    --dark-light: #161b22;' >> index.html
+        echo '    --light: #c9d1d9;' >> index.html
+        echo '    --border: #30363d;' >> index.html
+        echo '    --blue: #58a6ff;' >> index.html
+        echo '    --yellow: #f1e05a;' >> index.html
+        echo '    --orange: #e34c26;' >> index.html
+        echo '    --purple: #563d7c;' >> index.html
+        echo '}' >> index.html
+        echo '* { margin: 0; padding: 0; box-sizing: border-box; }' >> index.html
+        echo 'body {' >> index.html
+        echo '    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;' >> index.html
+        echo '    background: var(--dark);' >> index.html
+        echo '    color: var(--light);' >> index.html
+        echo '    line-height: 1.6;' >> index.html
+        echo '}' >> index.html
+        echo '.container { max-width: 1600px; margin: 0 auto; padding: 20px; }' >> index.html
+        echo 'header {' >> index.html
+        echo '    text-align: center;' >> index.html
+        echo '    padding: 40px 0;' >> index.html
+        echo '    border-bottom: 3px solid var(--primary);' >> index.html
+        echo '    margin-bottom: 40px;' >> index.html
+        echo '}' >> index.html
+        echo 'h1 { color: var(--primary); font-size: 2.8em; }' >> index.html
+        echo 'h2 { color: var(--blue); margin: 40px 0 25px; }' >> index.html
+        echo 'h3 { color: var(--primary); margin: 30px 0 15px; }' >> index.html
+        echo '.hierarchy {' >> index.html
+        echo '    background: var(--dark-light);' >> index.html
+        echo '    border-radius: 12px;' >> index.html
+        echo '    overflow: hidden;' >> index.html
+        echo '    margin: 30px 0;' >> index.html
+        echo '}' >> index.html
+        echo '.module {' >> index.html
+        echo '    border-bottom: 1px solid var(--border);' >> index.html
+        echo '}' >> index.html
+        echo '.module:last-child { border-bottom: none; }' >> index.html
+        echo '.module-header {' >> index.html
+        echo '    background: rgba(46, 164, 79, 0.1);' >> index.html
+        echo '    padding: 20px;' >> index.html
+        echo '    display: flex;' >> index.html
+        echo '    align-items: center;' >> index.html
+        echo '    gap: 15px;' >> index.html
+        echo '    cursor: pointer;' >> index.html
+        echo '}' >> index.html
+        echo '.module-header:hover { background: rgba(46, 164, 79, 0.2); }' >> index.html
+        echo '.module-icon {' >> index.html
+        echo '    font-size: 1.5em;' >> index.html
+        echo '    width: 40px;' >> index.html
+        echo '    text-align: center;' >> index.html
+        echo '}' >> index.html
+        echo '.module-icon.html { color: var(--orange); }' >> index.html
+        echo '.module-icon.js { color: var(--yellow); }' >> index.html
+        echo '.module-icon.css { color: var(--purple); }' >> index.html
+        echo '.module-info { flex-grow: 1; }' >> index.html
+        echo '.module-name { font-weight: bold; font-size: 1.2em; }' >> index.html
+        echo '.module-path { color: #8b949e; font-size: 0.9em; }' >> index.html
+        echo '.module-stats {' >> index.html
+        echo '    display: flex;' >> index.html
+        echo '    gap: 15px;' >> index.html
+        echo '}' >> index.html
+        echo '.stat {' >> index.html
+        echo '    background: rgba(255,255,255,0.1);' >> index.html
+        echo '    padding: 5px 10px;' >> index.html
+        echo '    border-radius: 15px;' >> index.html
+        echo '    font-size: 0.9em;' >> index.html
+        echo '}' >> index.html
+        echo '.module-content {' >> index.html
+        echo '    padding: 0;' >> index.html
+        echo '    max-height: 0;' >> index.html
+        echo '    overflow: hidden;' >> index.html
+        echo '    transition: max-height 0.3s;' >> index.html
+        echo '}' >> index.html
+        echo '.module-content.open {' >> index.html
+        echo '    max-height: 800px;' >> index.html
+        echo '    padding: 20px;' >> index.html
+        echo '}' >> index.html
+        echo '.file-section {' >> index.html
+        echo '    margin: 20px 0;' >> index.html
+        echo '    border-left: 3px solid var(--blue);' >> index.html
+        echo '    padding-left: 20px;' >> index.html
+        echo '}' >> index.html
+        echo '.file-header {' >> index.html
+        echo '    margin-bottom: 15px;' >> index.html
+        echo '    color: var(--blue);' >> index.html
+        echo '}' >> index.html
+        echo '.code-lines {' >> index.html
+        echo '    background: #000;' >> index.html
+        echo '    border-radius: 8px;' >> index.html
+        echo '    padding: 15px;' >> index.html
+        echo '    overflow-x: auto;' >> index.html
+        echo '    max-height: 500px;' >> index.html
+        echo '    overflow-y: auto;' >> index.html
+        echo '}' >> index.html
+        echo '.code-line {' >> index.html
+        echo '    display: flex;' >> index.html
+        echo '    font-family: Monaco, monospace;' >> index.html
+        echo '    font-size: 0.9em;' >> index.html
+        echo '    margin: 2px 0;' >> index.html
+        echo '}' >> index.html
+        echo '.line-num {' >> index.html
+        echo '    color: #6a737d;' >> index.html
+        echo '    min-width: 40px;' >> index.html
+        echo '    text-align: right;' >> index.html
+        echo '    padding-right: 10px;' >> index.html
+        echo '}' >> index.html
+        echo '.line-content {' >> index.html
+        echo '    flex-grow: 1;' >> index.html
+        echo '}' >> index.html
+        echo '.dependency {' >> index.html
+        echo '    background: rgba(88, 166, 255, 0.1);' >> index.html
+        echo '    padding: 10px;' >> index.html
+        echo '    border-radius: 6px;' >> index.html
+        echo '    margin: 10px 0;' >> index.html
+        echo '    border-left: 3px solid var(--blue);' >> index.html
+        echo '}' >> index.html
+        echo '.summary {' >> index.html
+        echo '    background: var(--dark-light);' >> index.html
+        echo '    padding: 30px;' >> index.html
+        echo '    border-radius: 12px;' >> index.html
+        echo '    margin: 40px 0;' >> index.html
+        echo '    text-align: center;' >> index.html
+        echo '}' >> index.html
+        echo '.summary-grid {' >> index.html
+        echo '    display: grid;' >> index.html
+        echo '    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));' >> index.html
+        echo '    gap: 20px;' >> index.html
+        echo '    margin: 25px 0;' >> index.html
+        echo '}' >> index.html
+        echo '.summary-item {' >> index.html
+        echo '    text-align: center;' >> index.html
+        echo '}' >> index.html
+        echo '.summary-value {' >> index.html
+        echo '    font-size: 2em;' >> index.html
+        echo '    font-weight: bold;' >> index.html
+        echo '    color: var(--primary);' >> index.html
+        echo '}' >> index.html
+        echo '@media (max-width: 768px) {' >> index.html
+        echo '    .summary-grid { grid-template-columns: repeat(2, 1fr); }' >> index.html
+        echo '    .module-stats { flex-wrap: wrap; }' >> index.html
+        echo '}' >> index.html
+        echo '</style>' >> index.html
+        echo '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">' >> index.html
+        echo '</head>' >> index.html
+        echo '<body>' >> index.html
+        echo '<div class="container">' >> index.html
+        echo '<header>' >> index.html
+        echo '<h1><i class="fas fa-sitemap"></i> Hierarquia Modular</h1>' >> index.html
+        echo '<p>Imóveis Maceió - Estrutura Analítica Completa</p>' >> index.html
+        echo '<p><strong>Gerado em:</strong> '"$DATE_NOW"'</p>' >> index.html
+        echo '</header>' >> index.html
+        
+        # SEÇÃO 1: ESTRUTURA PRINCIPAL
+        echo '<h2><i class="fas fa-layer-group"></i> Estrutura do Sistema</h2>' >> index.html
+        
+        echo '<div class="hierarchy">' >> index.html
+        
+        # 1. CAMADA DE APRESENTAÇÃO (HTML)
+        echo '<div class="module" id="presentation-layer">' >> index.html
+        echo '<div class="module-header" onclick="toggleModule(this)">' >> index.html
+        echo '<div class="module-icon html"><i class="fas fa-file-code"></i></div>' >> index.html
+        echo '<div class="module-info">' >> index.html
+        echo '<div class="module-name">Camada de Apresentação</div>' >> index.html
+        echo '<div class="module-path">HTML / Interface do Usuário</div>' >> index.html
+        echo '</div>' >> index.html
+        echo '<div class="module-stats">' >> index.html
+        echo '<span class="stat">1 arquivo</span>' >> index.html
+        echo '<span class="stat">'$(wc -l < "projeto-modular/index.html" 2>/dev/null || echo "0")' linhas</span>' >> index.html
+        echo '</div>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '<div class="module-content">' >> index.html
+        echo '<div class="file-section">' >> index.html
+        echo '<div class="file-header">' >> index.html
+        echo '<h4><i class="fas fa-file-code"></i> index.html</h4>' >> index.html
+        echo '<p><strong>Localização:</strong> Raiz do projeto</p>' >> index.html
+        echo '<p><strong>Função:</strong> Página principal do sistema</p>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '<div class="dependency">' >> index.html
+        echo '<p><strong>📦 DEPENDÊNCIAS:</strong></p>' >> index.html
+        echo '<ul>' >> index.html
+        echo '<li>js/main.js (inicialização do sistema)</li>' >> index.html
+        echo '<li>css/main.css (estilos globais)</li>' >> index.html
+        echo '<li>Font Awesome (ícones)</li>' >> index.html
+        echo '</ul>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '<div class="code-lines">' >> index.html
+        echo '<h5>📝 Conteúdo (primeiras 50 linhas):</h5>' >> index.html
+        if [ -f "projeto-modular/index.html" ]; then
+          echo '<pre style="color: var(--light);">' >> index.html
+          head -50 "projeto-modular/index.html" | cat -n | while read num line; do
+            safe_line=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+            echo '<div class="code-line">' >> index.html
+            echo '<span class="line-num">'"$num"'</span>' >> index.html
+            echo '<span class="line-content">'"$safe_line"'</span>' >> index.html
+            echo '</div>' >> index.html
+          done
+          echo '</pre>' >> index.html
+        fi
+        echo '</div>' >> index.html
+        echo '</div>' >> index.html
+        echo '</div>' >> index.html
+        echo '</div>' >> index.html
+        
+        # 2. CAMADA DE CONTROLE (JAVASCRIPT)
+        echo '<div class="module" id="control-layer">' >> index.html
+        echo '<div class="module-header" onclick="toggleModule(this)">' >> index.html
+        echo '<div class="module-icon js"><i class="fas fa-code"></i></div>' >> index.html
+        echo '<div class="module-info">' >> index.html
+        echo '<div class="module-name">Camada de Controle</div>' >> index.html
+        echo '<div class="module-path">JavaScript / Lógica da Aplicação</div>' >> index.html
+        echo '</div>' >> index.html
+        echo '<div class="module-stats">' >> index.html
+        echo '<span class="stat">'$(find projeto-modular -name "*.js" -type f | wc -l)' arquivos</span>' >> index.html
+        echo '<span class="stat">'$(find projeto-modular -name "*.js" -type f -exec cat {} \; 2>/dev/null | wc -l || echo "0")' linhas</span>' >> index.html
+        echo '</div>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '<div class="module-content">' >> index.html
+        
+        # Submódulo: Inicializador
+        echo '<div class="file-section">' >> index.html
+        echo '<div class="file-header">' >> index.html
+        echo '<h4><i class="fas fa-play-circle"></i> Inicializador</h4>' >> index.html
+        echo '</div>' >> index.html
+        if [ -f "projeto-modular/js/main.js" ]; then
+          echo '<p><strong>Arquivo:</strong> js/main.js</p>' >> index.html
+          echo '<p><strong>Linhas:</strong> '$(wc -l < "projeto-modular/js/main.js")'</p>' >> index.html
+          echo '<div class="dependency">' >> index.html
+          echo '<p><strong>🔗 CARREGA:</strong> Todos os módulos abaixo</p>' >> index.html
+          echo '</div>' >> index.html
+        fi
+        echo '</div>' >> index.html
+        
+        # Submódulo: Infraestrutura
+        echo '<div class="file-section">' >> index.html
+        echo '<div class="file-header">' >> index.html
+        echo '<h4><i class="fas fa-database"></i> Infraestrutura</h4>' >> index.html
+        echo '</div>' >> index.html
+        if [ -f "projeto-modular/js/modules/supabase.js" ]; then
+          echo '<p><strong>Arquivo:</strong> js/modules/supabase.js</p>' >> index.html
+          echo '<p><strong>Linhas:</strong> '$(wc -l < "projeto-modular/js/modules/supabase.js")'</p>' >> index.html
+          echo '<p><strong>Função:</strong> Conexão com banco de dados</p>' >> index.html
+          echo '<div class="dependency">' >> index.html
+          echo '<p><strong>📦 USADO POR:</strong> properties.js, admin.js, gallery.js</p>' >> index.html
+          echo '</div>' >> index.html
+        fi
+        echo '</div>' >> index.html
+        
+        # Submódulo: Negócio
+        echo '<div class="file-section">' >> index.html
+        echo '<div class="file-header">' >> index.html
+        echo '<h4><i class="fas fa-building"></i> Negócio</h4>' >> index.html
+        echo '</div>' >> index.html
+        
+        if [ -f "projeto-modular/js/modules/properties.js" ]; then
+          echo '<p><strong>Arquivo:</strong> js/modules/properties.js</p>' >> index.html
+          echo '<p><strong>Linhas:</strong> '$(wc -l < "projeto-modular/js/modules/properties.js")'</p>' >> index.html
+          echo '<p><strong>Função:</strong> Gestão de imóveis (CRUD)</p>' >> index.html
+          echo '<div class="dependency">' >> index.html
+          echo '<p><strong>🔗 DEPENDE DE:</strong> supabase.js</p>' >> index.html
+          echo '<p><strong>🧩 USA COMPONENTE:</strong> PropertyCard.js</p>' >> index.html
+          echo '</div>' >> index.html
+        fi
+        
+        if [ -f "projeto-modular/js/modules/admin.js" ]; then
+          echo '<p><strong>Arquivo:</strong> js/modules/admin.js</p>' >> index.html
+          echo '<p><strong>Linhas:</strong> '$(wc -l < "projeto-modular/js/modules/admin.js")'</p>' >> index.html
+          echo '<p><strong>Função:</strong> Painel administrativo</p>' >> index.html
+          echo '<div class="dependency">' >> index.html
+          echo '<p><strong>🔗 DEPENDE DE:</strong> supabase.js, utils.js</p>' >> index.html
+          echo '</div>' >> index.html
+        fi
+        echo '</div>' >> index.html
+        
+        # Submódulo: Utilitários
+        echo '<div class="file-section">' >> index.html
+        echo '<div class="file-header">' >> index.html
+        echo '<h4><i class="fas fa-tools"></i> Utilitários</h4>' >> index.html
+        echo '</div>' >> index.html
+        if [ -f "projeto-modular/js/modules/utils.js" ]; then
+          echo '<p><strong>Arquivo:</strong> js/modules/utils.js</p>' >> index.html
+          echo '<p><strong>Linhas:</strong> '$(wc -l < "projeto-modular/js/modules/utils.js")'</p>' >> index.html
+          echo '<p><strong>Função:</strong> Funções auxiliares reutilizáveis</p>' >> index.html
+          echo '<div class="dependency">' >> index.html
+          echo '<p><strong>🔄 USADO POR:</strong> Todos os módulos</p>' >> index.html
+          echo '</div>' >> index.html
+        fi
+        echo '</div>' >> index.html
+        
+        # Submódulo: Componentes
+        echo '<div class="file-section">' >> index.html
+        echo '<div class="file-header">' >> index.html
+        echo '<h4><i class="fas fa-puzzle-piece"></i> Componentes UI</h4>' >> index.html
+        echo '</div>' >> index.html
+        
+        if [ -f "projeto-modular/js/components/Header.js" ]; then
+          echo '<p><strong>Arquivo:</strong> js/components/Header.js</p>' >> index.html
+          echo '<p><strong>Linhas:</strong> '$(wc -l < "projeto-modular/js/components/Header.js")'</p>' >> index.html
+          echo '<p><strong>Função:</strong> Cabeçalho reutilizável</p>' >> index.html
+          echo '<div class="dependency">' >> index.html
+          echo '<p><strong>📍 USADO EM:</strong> Todas as páginas</p>' >> index.html
+          echo '</div>' >> index.html
+        fi
+        
+        if [ -f "projeto-modular/js/components/PropertyCard.js" ]; then
+          echo '<p><strong>Arquivo:</strong> js/components/PropertyCard.js</p>' >> index.html
+          echo '<p><strong>Linhas:</strong> '$(wc -l < "projeto-modular/js/components/PropertyCard.js")'</p>' >> index.html
+          echo '<p><strong>Função:</strong> Card de imóvel</p>' >> index.html
+          echo '<div class="dependency">' >> index.html
+          echo '<p><strong>📍 USADO EM:</strong> Listagens de imóveis</p>' >> index.html
+          echo '<p><strong>🔗 CHAMADO POR:</strong> properties.js</p>' >> index.html
+          echo '</div>' >> index.html
+        fi
+        echo '</div>' >> index.html
+        
+        echo '</div>' >> index.html
+        echo '</div>' >> index.html
+        
+        # 3. CAMADA DE ESTILOS (CSS)
+        echo '<div class="module" id="style-layer">' >> index.html
+        echo '<div class="module-header" onclick="toggleModule(this)">' >> index.html
+        echo '<div class="module-icon css"><i class="fas fa-palette"></i></div>' >> index.html
+        echo '<div class="module-info">' >> index.html
+        echo '<div class="module-name">Camada de Estilos</div>' >> index.html
+        echo '<div class="module-path">CSS / Design e Layout</div>' >> index.html
+        echo '</div>' >> index.html
+        echo '<div class="module-stats">' >> index.html
+        echo '<span class="stat">'$(find projeto-modular -name "*.css" -type f | wc -l)' arquivos</span>' >> index.html
+        echo '<span class="stat">'$(find projeto-modular -name "*.css" -type f -exec cat {} \; 2>/dev/null | wc -l || echo "0")' linhas</span>' >> index.html
+        echo '</div>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '<div class="module-content">' >> index.html
+        
+        # Listar arquivos CSS
+        for css_file in projeto-modular/css/*.css; do
+          if [ -f "$css_file" ]; then
+            filename=$(basename "$css_file")
+            lines=$(wc -l < "$css_file")
+            
+            echo '<div class="file-section">' >> index.html
+            echo '<div class="file-header">' >> index.html
+            echo '<h4><i class="fas fa-file-alt"></i> '"$filename"'</h4>' >> index.html
+            echo '</div>' >> index.html
+            echo '<p><strong>Localização:</strong> css/'"$filename"'</p>' >> index.html
+            echo '<p><strong>Linhas:</strong> '"$lines"'</p>' >> index.html
+            
+            # Determinar função baseada no nome
+            case $filename in
+              "main.css")
+                echo '<p><strong>Função:</strong> Estilos globais do sistema</p>' >> index.html
+                ;;
+              "admin.css")
+                echo '<p><strong>Função:</strong> Estilos do painel administrativo</p>' >> index.html
+                ;;
+              "gallery.css")
+                echo '<p><strong>Função:</strong> Estilos da galeria de imagens</p>' >> index.html
+                ;;
+              "header.css")
+                echo '<p><strong>Função:</strong> Estilos do componente Header</p>' >> index.html
+                ;;
+              "responsive.css")
+                echo '<p><strong>Função:</strong> Media queries para responsividade</p>' >> index.html
+                ;;
+              *)
+                echo '<p><strong>Função:</strong> Estilos específicos</p>' >> index.html
+                ;;
+            esac
+            
+            echo '</div>' >> index.html
+          fi
+        done
+        
+        echo '</div>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '</div>' >> index.html  # Fecha hierarchy
+        
+        # SEÇÃO 2: MAPA DE ACOPLAMENTOS
+        echo '<h2><i class="fas fa-project-diagram"></i> Mapa de Acoplamentos</h2>' >> index.html
+        
+        echo '<div style="background: var(--dark-light); padding: 25px; border-radius: 12px; margin: 30px 0;">' >> index.html
+        echo '<pre style="color: var(--light); font-family: Monaco; font-size: 0.9em; line-height: 1.8;">' >> index.html
+        echo '🏗️  ARQUITETURA DO SISTEMA' >> index.html
+        echo '==========================' >> index.html
+        echo '' >> index.html
+        echo '📄 index.html (RAIZ)' >> index.html
+        echo '├── 📜 main.js (CONTROLADOR PRINCIPAL)' >> index.html
+        echo '│   ├── 🗄️  supabase.js (INFRAESTRUTURA)' >> index.html
+        echo '│   │   ├── 🏠 properties.js (NEGÓCIO - Imóveis)' >> index.html
+        echo '│   │   │   └── 🎴 PropertyCard.js (COMPONENTE UI)' >> index.html
+        echo '│   │   ├── 👨‍💼 admin.js (NEGÓCIO - Administração)' >> index.html
+        echo '│   │   └── 🖼️  gallery.js (NEGÓCIO - Galeria)' >> index.html
+        echo '│   ├── 🛠️  utils.js (UTILITÁRIOS)' >> index.html
+        echo '│   └── 🏷️  Header.js (COMPONENTE UI)' >> index.html
+        echo '└── 🎨 CSS (APRESENTAÇÃO)' >> index.html
+        echo '    ├── main.css (Global)' >> index.html
+        echo '    ├── admin.css (Admin)' >> index.html
+        echo '    ├── gallery.css (Galeria)' >> index.html
+        echo '    ├── header.css (Header)' >> index.html
+        echo '    └── responsive.css (Responsivo)' >> index.html
+        echo '</pre>' >> index.html
+        echo '</div>' >> index.html
+        
+        # SEÇÃO 3: RESUMO
+        echo '<div class="summary">' >> index.html
+        echo '<h2><i class="fas fa-chart-pie"></i> Resumo da Arquitetura</h2>' >> index.html
+        
+        # Calcular totais
+        total_html_lines=$(wc -l < "projeto-modular/index.html" 2>/dev/null || echo "0")
+        total_js_lines=$(find projeto-modular -name "*.js" -type f -exec cat {} \; 2>/dev/null | wc -l || echo "0")
+        total_css_lines=$(find projeto-modular -name "*.css" -type f -exec cat {} \; 2>/dev/null | wc -l || echo "0")
+        total_all=$((total_html_lines + total_js_lines + total_css_lines))
+        
+        echo '<div class="summary-grid">' >> index.html
+        echo '<div class="summary-item">' >> index.html
+        echo '<div class="summary-value">'$(find projeto-modular -name "*.js" -type f | wc -l)'</div>' >> index.html
+        echo '<div>Módulos JS</div>' >> index.html
+        echo '</div>' >> index.html
+        echo '<div class="summary-item">' >> index.html
+        echo '<div class="summary-value">2</div>' >> index.html
+        echo '<div>Componentes</div>' >> index.html
+        echo '</div>' >> index.html
+        echo '<div class="summary-item">' >> index.html
+        echo '<div class="summary-value">'$(find projeto-modular -name "*.css" -type f | wc -l)'</div>' >> index.html
+        echo '<div>Arquivos CSS</div>' >> index.html
+        echo '</div>' >> index.html
+        echo '<div class="summary-item">' >> index.html
+        echo '<div class="summary-value">'"$total_all"'</div>' >> index.html
+        echo '<div>Linhas totais</div>' >> index.html
+        echo '</div>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '<p><strong>🎯 Sistema:</strong> Gestão Imobiliária Maceió</p>' >> index.html
+        echo '<p><strong>🏗️ Arquitetura:</strong> Frontend Modular (MVC-like)</p>' >> index.html
+        echo '<p><strong>🗄️ Banco:</strong> Supabase (PostgreSQL)</p>' >> index.html
+        echo '<p><strong>🌐 Status:</strong> <span style="color: var(--primary);">● Em produção</span></p>' >> index.html
+        echo '</div>' >> index.html
+        
+        # FOOTER
+        echo '<footer style="text-align: center; margin-top: 60px; padding-top: 30px; border-top: 2px solid var(--border); color: #8b949e;">' >> index.html
+        echo '<p><strong>🏗️ Análise Hierárquica Modular - Imóveis Maceió</strong></p>' >> index.html
+        echo '<p>Documentação técnica gerada automaticamente em '"$DATE_NOW"'</p>' >> index.html
+        echo '<div style="margin-top: 20px;">' >> index.html
+        echo '<a href="https://rclessa25-hub.github.io/imoveis-maceio/" style="color: var(--primary); margin: 0 15px;">' >> index.html
+        echo '<i class="fas fa-external-link-alt"></i> Site em Produção' >> index.html
+        echo '</a>' >> index.html
+        echo '<a href="https://github.com/rclessa25-hub/imoveis-maceio" style="color: var(--primary); margin: 0 15px;">' >> index.html
+        echo '<i class="fab fa-github"></i> Código Fonte' >> index.html
+        echo '</a>' >> index.html
+        echo '</div>' >> index.html
+        echo '</footer>' >> index.html
+        
+        echo '</div>' >> index.html  # Fecha container
+        
+        # SCRIPT
+        echo '<script>' >> index.html
+        echo 'function toggleModule(header) {' >> index.html
+        echo '    const content = header.nextElementSibling;' >> index.html
+        echo '    content.classList.toggle("open");' >> index.html
+        echo '}' >> index.html
+        echo '' >> index.html
+        echo '// Abrir primeiro módulo por padrão' >> index.html
+        echo 'document.addEventListener("DOMContentLoaded", function() {' >> index.html
+        echo '    const firstModule = document.querySelector(".module-header");' >> index.html
+        echo '    if (firstModule) {' >> index.html
+        echo '        toggleModule(firstModule);' >> index.html
+        echo '    }' >> index.html
+        echo '});' >> index.html
+        echo '</script>' >> index.html
+        echo '</body>' >> index.html
+        echo '</html>' >> index.html
+        
+        echo "✅ Relatório hierárquico gerado!"
+    
+    - name: 📦 Upload
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '.'
+    
+    - name: 🚀 Deploy
+      uses: actions/deploy-pages@v4
+    
+    - name: 🎉 Resultado
+      run: |
+        echo ""
+        echo "🎉 HIERARQUIA MODULAR PUBLICADA!"
+        echo "================================"
+        echo ""
+        echo "🌐 ACESSE EM:"
+        echo "https://rclessa25-hub.github.io/reports-wlimoveis/"
+        echo ""
+        echo "🏗️ AGORA COM:"
+        echo "1. 🏗️  Estrutura hierárquica por camadas"
+        echo "2. 🔗 Mapa completo de acoplamentos"
+        echo "3. 📍 Localização exata de cada arquivo"
+        echo "4. 📦 Dependências mapeadas"
+        echo "5. 📊 Análise modular completa"
