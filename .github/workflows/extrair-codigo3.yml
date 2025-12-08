@@ -112,61 +112,59 @@ jobs:
         echo "⚙️ YAML: $YML_COUNT arquivos"
         echo ""
         
-        # Criar arquivo HTML
+        # Criar arquivo HTML - usando múltiplos echos
         echo 'Criando estrutura HTML...'
         
-        # Primeiro, criar o arquivo HTML com o cabeçalho básico usando múltiplos echos
-        cat > index.html << 'EOF'
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📥 Código Fonte COMPLETO - Imóveis Maceió</title>
-<style>
-body { font-family: Arial, sans-serif; background: #0d1117; color: white; margin: 0; padding: 20px; }
-.container { max-width: 1600px; margin: 0 auto; }
-header { text-align: center; padding: 30px 0; border-bottom: 3px solid #2ea44f; margin-bottom: 30px; }
-h1 { color: #2ea44f; font-size: 2.8em; }
-h2 { color: #58a6ff; margin: 30px 0 20px; padding-bottom: 10px; border-bottom: 2px solid #30363d; }
-h3 { color: #f0f6fc; margin: 20px 0 15px; }
-.file-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin: 25px 0; }
-.file-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; transition: transform 0.2s; }
-.file-card:hover { transform: translateY(-5px); border-color: #58a6ff; }
-.file-card h3 { margin-top: 0; color: #58a6ff; display: flex; align-items: center; gap: 10px; }
-.file-card .js { color: #f1e05a; }
-.file-card .css { color: #563d7c; }
-.file-card .html { color: #e34c26; }
-.file-card .json { color: #f1e05a; opacity: 0.9; }
-.file-stats { display: flex; gap: 15px; margin-top: 12px; font-size: 0.9em; color: #8b949e; flex-wrap: wrap; }
-.file-stats span { display: flex; align-items: center; gap: 5px; }
-.functions-count { background: #1f6feb; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; }
-.code-viewer { background: #0a0e14; padding: 25px; border-radius: 10px; margin: 25px 0; border: 1px solid #30363d; overflow-x: auto; }
-pre { margin: 0; font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace; font-size: 0.95em; line-height: 1.5; tab-size: 4; white-space: pre-wrap; }
-.line-number { color: #6a737d; margin-right: 20px; user-select: none; min-width: 40px; display: inline-block; text-align: right; }
-.comment { color: #6a737d; font-style: italic; }
-.string { color: #9ecbff; }
-.keyword { color: #ff7b72; font-weight: bold; }
-.function { color: #d2a8ff; }
-.number { color: #79c0ff; }
-.operator { color: #ff7b72; }
-.property { color: #79c0ff; }
-a { color: #2ea44f; text-decoration: none; }
-a:hover { text-decoration: underline; }
-.complete-badge { background: linear-gradient(135deg, #238636, #2ea44f); color: white; padding: 6px 14px; border-radius: 6px; font-size: 0.85em; margin-left: 10px; font-weight: bold; }
-.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin: 25px 0; }
-.summary-item { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; text-align: center; transition: transform 0.2s; }
-.summary-item:hover { transform: translateY(-3px); border-color: #2ea44f; }
-.summary-number { font-size: 2.5em; font-weight: bold; color: #2ea44f; margin: 15px 0; }
-.exact-count { font-size: 3em; font-weight: bold; background: linear-gradient(135deg, #58a6ff, #1f6feb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 20px 0; }
-.file-size-badge { background: #30363d; color: #8b949e; padding: 3px 8px; border-radius: 4px; font-size: 0.8em; margin-left: 10px; }
-@media (max-width: 768px) { .file-list { grid-template-columns: 1fr; } .summary-grid { grid-template-columns: repeat(2, 1fr); } }
-</style>
-</head>
-<body>
-EOF
+        # Cabeçalho HTML
+        echo '<!DOCTYPE html>' > index.html
+        echo '<html lang="pt-BR">' >> index.html
+        echo '<head>' >> index.html
+        echo '<meta charset="UTF-8">' >> index.html
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
+        echo '<title>📥 Código Fonte COMPLETO - Imóveis Maceió</title>' >> index.html
+        echo '<style>' >> index.html
+        echo 'body { font-family: Arial, sans-serif; background: #0d1117; color: white; margin: 0; padding: 20px; }' >> index.html
+        echo '.container { max-width: 1600px; margin: 0 auto; }' >> index.html
+        echo 'header { text-align: center; padding: 30px 0; border-bottom: 3px solid #2ea44f; margin-bottom: 30px; }' >> index.html
+        echo 'h1 { color: #2ea44f; font-size: 2.8em; }' >> index.html
+        echo 'h2 { color: #58a6ff; margin: 30px 0 20px; padding-bottom: 10px; border-bottom: 2px solid #30363d; }' >> index.html
+        echo 'h3 { color: #f0f6fc; margin: 20px 0 15px; }' >> index.html
+        echo '.file-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin: 25px 0; }' >> index.html
+        echo '.file-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; transition: transform 0.2s; }' >> index.html
+        echo '.file-card:hover { transform: translateY(-5px); border-color: #58a6ff; }' >> index.html
+        echo '.file-card h3 { margin-top: 0; color: #58a6ff; display: flex; align-items: center; gap: 10px; }' >> index.html
+        echo '.file-card .js { color: #f1e05a; }' >> index.html
+        echo '.file-card .css { color: #563d7c; }' >> index.html
+        echo '.file-card .html { color: #e34c26; }' >> index.html
+        echo '.file-card .json { color: #f1e05a; opacity: 0.9; }' >> index.html
+        echo '.file-stats { display: flex; gap: 15px; margin-top: 12px; font-size: 0.9em; color: #8b949e; flex-wrap: wrap; }' >> index.html
+        echo '.file-stats span { display: flex; align-items: center; gap: 5px; }' >> index.html
+        echo '.functions-count { background: #1f6feb; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; }' >> index.html
+        echo '.code-viewer { background: #0a0e14; padding: 25px; border-radius: 10px; margin: 25px 0; border: 1px solid #30363d; overflow-x: auto; }' >> index.html
+        echo 'pre { margin: 0; font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace; font-size: 0.95em; line-height: 1.5; tab-size: 4; white-space: pre-wrap; }' >> index.html
+        echo '.line-number { color: #6a737d; margin-right: 20px; user-select: none; min-width: 40px; display: inline-block; text-align: right; }' >> index.html
+        echo '.comment { color: #6a737d; font-style: italic; }' >> index.html
+        echo '.string { color: #9ecbff; }' >> index.html
+        echo '.keyword { color: #ff7b72; font-weight: bold; }' >> index.html
+        echo '.function { color: #d2a8ff; }' >> index.html
+        echo '.number { color: #79c0ff; }' >> index.html
+        echo '.operator { color: #ff7b72; }' >> index.html
+        echo '.property { color: #79c0ff; }' >> index.html
+        echo 'a { color: #2ea44f; text-decoration: none; }' >> index.html
+        echo 'a:hover { text-decoration: underline; }' >> index.html
+        echo '.complete-badge { background: linear-gradient(135deg, #238636, #2ea44f); color: white; padding: 6px 14px; border-radius: 6px; font-size: 0.85em; margin-left: 10px; font-weight: bold; }' >> index.html
+        echo '.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin: 25px 0; }' >> index.html
+        echo '.summary-item { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; text-align: center; transition: transform 0.2s; }' >> index.html
+        echo '.summary-item:hover { transform: translateY(-3px); border-color: #2ea44f; }' >> index.html
+        echo '.summary-number { font-size: 2.5em; font-weight: bold; color: #2ea44f; margin: 15px 0; }' >> index.html
+        echo '.exact-count { font-size: 3em; font-weight: bold; background: linear-gradient(135deg, #58a6ff, #1f6feb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 20px 0; }' >> index.html
+        echo '.file-size-badge { background: #30363d; color: #8b949e; padding: 3px 8px; border-radius: 4px; font-size: 0.8em; margin-left: 10px; }' >> index.html
+        echo '@media (max-width: 768px) { .file-list { grid-template-columns: 1fr; } .summary-grid { grid-template-columns: repeat(2, 1fr); } }' >> index.html
+        echo '</style>' >> index.html
+        echo '</head>' >> index.html
+        echo '<body>' >> index.html
         
-        # Continuar escrevendo no arquivo HTML
+        # Conteúdo principal
         echo '<div class="container">' >> index.html
         echo '<header>' >> index.html
         echo "<h1>📥 Código Fonte COMPLETO <span class=\"complete-badge\">SEM LIMITAÇÕES</span></h1>" >> index.html
