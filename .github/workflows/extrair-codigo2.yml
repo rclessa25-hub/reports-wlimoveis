@@ -1,4 +1,4 @@
-name: 📥 Extrair Código Fonte Ver2
+name: 📥 Extrair Código Fonte
 
 on:
   workflow_dispatch:
@@ -25,13 +25,13 @@ jobs:
         echo "📥 CLONANDO CÓDIGO FONTE..."
         git clone https://github.com/rclessa25-hub/imoveis-maceio.git fonte-completo
     
-    - name: 📝 Criar relatório ultra-simples
+    - name: 📝 Criar relatório sem HEREDOC
       run: |
-        echo "📄 GERANDO RELATÓRIO ULTRA-SIMPLES..."
+        echo "📄 GERANDO RELATÓRIO SEM HEREDOC..."
         
         DATE_NOW=$(date '+%d/%m/%Y às %H:%M:%S')
         
-        # Método SIMPLES para contar - sem redirecionamentos
+        # Método SIMPLES para contar
         echo "Calculando estatísticas..."
         
         # Inicializar contadores
@@ -70,7 +70,7 @@ jobs:
             JS_COUNT=$((JS_COUNT + 1))
             L=$(wc -l < "$file")
             TOTAL_LINES=$((TOTAL_LINES + L))
-            # Contar funções de forma SIMPLES
+            # Contar funções
             if grep -q "function" "$file"; then
               F=$(grep -c "function" "$file")
               TOTAL_FUNCTIONS=$((TOTAL_FUNCTIONS + F))
@@ -119,67 +119,58 @@ jobs:
         
         TOTAL_FILES=$((HTML_COUNT + JS_COUNT + CSS_COUNT + JSON_COUNT))
         
-        # Criar HTML usando método SEGURO
-        echo "Criando HTML..."
+        # CRIAR HTML USANDO APENAS ECHO - SEM HEREDOC
+        echo "Criando HTML sem HEREDOC..."
         
-        # Criar arquivo HTML passo a passo
-        cat > index.html << 'HTML_HEADER'
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📥 Código Fonte - Imóveis Maceió</title>
-<style>
-body { font-family: Arial, sans-serif; background: #0d1117; color: white; margin: 0; padding: 20px; }
-.container { max-width: 1400px; margin: 0 auto; }
-header { text-align: center; padding: 30px 0; border-bottom: 3px solid #2ea44f; margin-bottom: 30px; }
-h1 { color: #2ea44f; font-size: 2.5em; }
-h2 { color: #58a6ff; margin: 30px 0 20px; }
-.file-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin: 20px 0; }
-.file-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
-.file-card h3 { margin-top: 0; color: #58a6ff; }
-.code-viewer { background: #000; padding: 20px; border-radius: 8px; margin: 20px 0; overflow-x: auto; }
-pre { margin: 0; font-family: "Monaco", monospace; font-size: 0.9em; line-height: 1.4; }
-.line-number { color: #6a737d; margin-right: 15px; user-select: none; }
-</style>
-</head>
-<body>
-<div class="container">
-<header>
-<h1>📥 Código Fonte Completo</h1>
-<p>Imóveis Maceió - Extração completa</p>
-<p><strong>Gerado em:</strong> 
-HTML_HEADER
+        # Criar arquivo vazio
+        > index.html
         
-        echo "$DATE_NOW" >> index.html
-        
-        cat >> index.html << 'HTML_HEADER2'
-</p>
-</header>
-HTML_HEADER2
+        # Adicionar header com echo
+        echo '<!DOCTYPE html>' >> index.html
+        echo '<html lang="pt-BR">' >> index.html
+        echo '<head>' >> index.html
+        echo '<meta charset="UTF-8">' >> index.html
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
+        echo '<title>📥 Código Fonte - Imóveis Maceió</title>' >> index.html
+        echo '<style>' >> index.html
+        echo 'body { font-family: Arial, sans-serif; background: #0d1117; color: white; margin: 0; padding: 20px; }' >> index.html
+        echo '.container { max-width: 1400px; margin: 0 auto; }' >> index.html
+        echo 'header { text-align: center; padding: 30px 0; border-bottom: 3px solid #2ea44f; margin-bottom: 30px; }' >> index.html
+        echo 'h1 { color: #2ea44f; font-size: 2.5em; }' >> index.html
+        echo 'h2 { color: #58a6ff; margin: 30px 0 20px; }' >> index.html
+        echo '.file-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin: 20px 0; }' >> index.html
+        echo '.file-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }' >> index.html
+        echo '.file-card h3 { margin-top: 0; color: #58a6ff; }' >> index.html
+        echo '.code-viewer { background: #000; padding: 20px; border-radius: 8px; margin: 20px 0; overflow-x: auto; }' >> index.html
+        echo 'pre { margin: 0; font-family: "Monaco", monospace; font-size: 0.9em; line-height: 1.4; }' >> index.html
+        echo '.line-number { color: #6a737d; margin-right: 15px; user-select: none; }' >> index.html
+        echo '</style>' >> index.html
+        echo '</head>' >> index.html
+        echo '<body>' >> index.html
+        echo '<div class="container">' >> index.html
+        echo '<header>' >> index.html
+        echo '<h1>📥 Código Fonte Completo</h1>' >> index.html
+        echo '<p>Imóveis Maceió - Extração completa</p>' >> index.html
+        echo '<p><strong>Gerado em:</strong> '"$DATE_NOW"'</p>' >> index.html
+        echo '</header>' >> index.html
         
         # Adicionar resumo
-        cat >> index.html << HTML_SUMMARY
-<h2>📊 Resumo da Extração</h2>
-<div style="background: #161b22; padding: 20px; border-radius: 8px; margin: 20px 0;">
-<p><strong>Total de arquivos:</strong> $TOTAL_FILES</p>
-<p><strong>Total de linhas:</strong> $TOTAL_LINES</p>
-<p><strong>Funções JavaScript:</strong> $TOTAL_FUNCTIONS</p>
-<p><strong>HTML:</strong> $HTML_COUNT arquivos</p>
-<p><strong>JavaScript:</strong> $JS_COUNT arquivos</p>
-<p><strong>CSS:</strong> $CSS_COUNT arquivos</p>
-<p><strong>JSON:</strong> $JSON_COUNT arquivos</p>
-</div>
-HTML_SUMMARY
+        echo '<h2>📊 Resumo da Extração</h2>' >> index.html
+        echo '<div style="background: #161b22; padding: 20px; border-radius: 8px; margin: 20px 0;">' >> index.html
+        echo '<p><strong>Total de arquivos:</strong> '"$TOTAL_FILES"'</p>' >> index.html
+        echo '<p><strong>Total de linhas:</strong> '"$TOTAL_LINES"'</p>' >> index.html
+        echo '<p><strong>Funções JavaScript:</strong> '"$TOTAL_FUNCTIONS"'</p>' >> index.html
+        echo '<p><strong>HTML:</strong> '"$HTML_COUNT"' arquivos</p>' >> index.html
+        echo '<p><strong>JavaScript:</strong> '"$JS_COUNT"' arquivos</p>' >> index.html
+        echo '<p><strong>CSS:</strong> '"$CSS_COUNT"' arquivos</p>' >> index.html
+        echo '<p><strong>JSON:</strong> '"$JSON_COUNT"' arquivos</p>' >> index.html
+        echo '</div>' >> index.html
         
         # Lista de arquivos
-        cat >> index.html << 'HTML_LIST_START'
-<h2>📁 Lista de Arquivos Extraídos</h2>
-<div class="file-list">
-HTML_LIST_START
+        echo '<h2>📁 Lista de Arquivos Extraídos</h2>' >> index.html
+        echo '<div class="file-list">' >> index.html
         
-        # Adicionar cada arquivo
+        # Adicionar cada arquivo com echo
         # HTML
         for file in fonte-completo/*.html; do
           if [ -f "$file" ]; then
@@ -187,15 +178,13 @@ HTML_LIST_START
             lines=$(wc -l < "$file")
             size=$(wc -c < "$file")
             size_kb=$((size / 1024))
-            cat >> index.html << FILE_CARD
-<div class="file-card">
-<h3>📄 $filename</h3>
-<p><strong>Local:</strong> .</p>
-<p><strong>Linhas:</strong> $lines</p>
-<p><strong>Funções:</strong> N/A (HTML)</p>
-<p><strong>Tamanho:</strong> ${size_kb} KB</p>
-</div>
-FILE_CARD
+            echo '<div class="file-card">' >> index.html
+            echo '<h3>📄 '"$filename"'</h3>' >> index.html
+            echo '<p><strong>Local:</strong> .</p>' >> index.html
+            echo '<p><strong>Linhas:</strong> '"$lines"'</p>' >> index.html
+            echo '<p><strong>Funções:</strong> N/A (HTML)</p>' >> index.html
+            echo '<p><strong>Tamanho:</strong> '"$size_kb"' KB</p>' >> index.html
+            echo '</div>' >> index.html
           fi
         done
         
@@ -207,15 +196,13 @@ FILE_CARD
               lines=$(wc -l < "$file")
               size=$(wc -c < "$file")
               size_kb=$((size / 1024))
-              cat >> index.html << FILE_CARD
-<div class="file-card">
-<h3>🎨 $filename</h3>
-<p><strong>Local:</strong> css</p>
-<p><strong>Linhas:</strong> $lines</p>
-<p><strong>Funções:</strong> N/A (CSS)</p>
-<p><strong>Tamanho:</strong> ${size_kb} KB</p>
-</div>
-FILE_CARD
+              echo '<div class="file-card">' >> index.html
+              echo '<h3>🎨 '"$filename"'</h3>' >> index.html
+              echo '<p><strong>Local:</strong> css</p>' >> index.html
+              echo '<p><strong>Linhas:</strong> '"$lines"'</p>' >> index.html
+              echo '<p><strong>Funções:</strong> N/A (CSS)</p>' >> index.html
+              echo '<p><strong>Tamanho:</strong> '"$size_kb"' KB</p>' >> index.html
+              echo '</div>' >> index.html
             fi
           done
         fi
@@ -232,15 +219,13 @@ FILE_CARD
             if grep -q "function" "$file"; then
               functions=$(grep -c "function" "$file")
             fi
-            cat >> index.html << FILE_CARD
-<div class="file-card">
-<h3>📜 $filename</h3>
-<p><strong>Local:</strong> js</p>
-<p><strong>Linhas:</strong> $lines</p>
-<p><strong>Funções:</strong> $functions</p>
-<p><strong>Tamanho:</strong> ${size_kb} KB</p>
-</div>
-FILE_CARD
+            echo '<div class="file-card">' >> index.html
+            echo '<h3>📜 '"$filename"'</h3>' >> index.html
+            echo '<p><strong>Local:</strong> js</p>' >> index.html
+            echo '<p><strong>Linhas:</strong> '"$lines"'</p>' >> index.html
+            echo '<p><strong>Funções:</strong> '"$functions"'</p>' >> index.html
+            echo '<p><strong>Tamanho:</strong> '"$size_kb"' KB</p>' >> index.html
+            echo '</div>' >> index.html
           fi
         done
         
@@ -256,15 +241,13 @@ FILE_CARD
               if grep -q "function" "$file"; then
                 functions=$(grep -c "function" "$file")
               fi
-              cat >> index.html << FILE_CARD
-<div class="file-card">
-<h3>📜 $filename (Módulo)</h3>
-<p><strong>Local:</strong> js/modules</p>
-<p><strong>Linhas:</strong> $lines</p>
-<p><strong>Funções:</strong> $functions</p>
-<p><strong>Tamanho:</strong> ${size_kb} KB</p>
-</div>
-FILE_CARD
+              echo '<div class="file-card">' >> index.html
+              echo '<h3>📜 '"$filename"' (Módulo)</h3>' >> index.html
+              echo '<p><strong>Local:</strong> js/modules</p>' >> index.html
+              echo '<p><strong>Linhas:</strong> '"$lines"'</p>' >> index.html
+              echo '<p><strong>Funções:</strong> '"$functions"'</p>' >> index.html
+              echo '<p><strong>Tamanho:</strong> '"$size_kb"' KB</p>' >> index.html
+              echo '</div>' >> index.html
             fi
           done
         fi
@@ -281,15 +264,13 @@ FILE_CARD
               if grep -q "function" "$file"; then
                 functions=$(grep -c "function" "$file")
               fi
-              cat >> index.html << FILE_CARD
-<div class="file-card">
-<h3>📜 $filename (Componente)</h3>
-<p><strong>Local:</strong> js/components</p>
-<p><strong>Linhas:</strong> $lines</p>
-<p><strong>Funções:</strong> $functions</p>
-<p><strong>Tamanho:</strong> ${size_kb} KB</p>
-</div>
-FILE_CARD
+              echo '<div class="file-card">' >> index.html
+              echo '<h3>📜 '"$filename"' (Componente)</h3>' >> index.html
+              echo '<p><strong>Local:</strong> js/components</p>' >> index.html
+              echo '<p><strong>Linhas:</strong> '"$lines"'</p>' >> index.html
+              echo '<p><strong>Funções:</strong> '"$functions"'</p>' >> index.html
+              echo '<p><strong>Tamanho:</strong> '"$size_kb"' KB</p>' >> index.html
+              echo '</div>' >> index.html
             fi
           done
         fi
@@ -301,26 +282,20 @@ FILE_CARD
             lines=$(wc -l < "$file")
             size=$(wc -c < "$file")
             size_kb=$((size / 1024))
-            cat >> index.html << FILE_CARD
-<div class="file-card">
-<h3>📋 $filename</h3>
-<p><strong>Local:</strong> .</p>
-<p><strong>Linhas:</strong> $lines</p>
-<p><strong>Funções:</strong> N/A (JSON)</p>
-<p><strong>Tamanho:</strong> ${size_kb} KB</p>
-</div>
-FILE_CARD
+            echo '<div class="file-card">' >> index.html
+            echo '<h3>📋 '"$filename"'</h3>' >> index.html
+            echo '<p><strong>Local:</strong> .</p>' >> index.html
+            echo '<p><strong>Linhas:</strong> '"$lines"'</p>' >> index.html
+            echo '<p><strong>Funções:</strong> N/A (JSON)</p>' >> index.html
+            echo '<p><strong>Tamanho:</strong> '"$size_kb"' KB</p>' >> index.html
+            echo '</div>' >> index.html
           fi
         done
         
-        cat >> index.html << 'HTML_LIST_END'
-</div>
-HTML_LIST_END
+        echo '</div>' >> index.html
         
         # Código completo
-        cat >> index.html << 'HTML_CODE_START'
-<h2>📜 Código Fonte Completo</h2>
-HTML_CODE_START
+        echo '<h2>📜 Código Fonte Completo</h2>' >> index.html
         
         # Adicionar código de cada arquivo
         # HTML
@@ -328,20 +303,18 @@ HTML_CODE_START
           if [ -f "$file" ]; then
             filename=$(basename "$file")
             lines=$(wc -l < "$file")
-            cat >> index.html << CODE_START
-<div class="code-viewer">
-<h3>$filename ($lines linhas)</h3>
-<pre>
-CODE_START
+            echo '<div class="code-viewer">' >> index.html
+            echo '<h3>'"$filename"' ('"$lines"' linhas)</h3>' >> index.html
+            echo '<pre>' >> index.html
             line_num=1
             while IFS= read -r line; do
-              echo "<span class='line-number'>$line_num</span>$line<br/>" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g' >> index.html
+              # Escapar HTML
+              line_escaped=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+              echo '<span class="line-number">'"$line_num"'</span>'"$line_escaped"'<br/>' >> index.html
               line_num=$((line_num + 1))
             done < "$file"
-            cat >> index.html << 'CODE_END'
-</pre>
-</div>
-CODE_END
+            echo '</pre>' >> index.html
+            echo '</div>' >> index.html
           fi
         done
         
@@ -351,34 +324,29 @@ CODE_END
             if [ -f "$file" ]; then
               filename=$(basename "$file")
               lines=$(wc -l < "$file")
-              cat >> index.html << CODE_START
-<div class="code-viewer">
-<h3>css/$filename ($lines linhas)</h3>
-<pre>
-CODE_START
+              echo '<div class="code-viewer">' >> index.html
+              echo '<h3>css/'"$filename"' ('"$lines"' linhas)</h3>' >> index.html
+              echo '<pre>' >> index.html
               line_num=1
               while IFS= read -r line; do
-                echo "<span class='line-number'>$line_num</span>$line<br/>" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g' >> index.html
+                line_escaped=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+                echo '<span class="line-number">'"$line_num"'</span>'"$line_escaped"'<br/>' >> index.html
                 line_num=$((line_num + 1))
               done < "$file"
-              cat >> index.html << 'CODE_END'
-</pre>
-</div>
-CODE_END
+              echo '</pre>' >> index.html
+              echo '</div>' >> index.html
             fi
           done
         fi
         
         # Footer
-        cat >> index.html << 'HTML_FOOTER'
-<footer style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #30363d; color: #8b949e;">
-<p><strong>📥 Extração Completa do Código Fonte</strong></p>
-<p>Todas as linhas extraídas sem limitações</p>
-</footer>
-</div>
-</body>
-</html>
-HTML_FOOTER
+        echo '<footer style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #30363d; color: #8b949e;">' >> index.html
+        echo '<p><strong>📥 Extração Completa do Código Fonte</strong></p>' >> index.html
+        echo '<p>Todas as linhas extraídas sem limitações</p>' >> index.html
+        echo '</footer>' >> index.html
+        echo '</div>' >> index.html
+        echo '</body>' >> index.html
+        echo '</html>' >> index.html
         
         echo "✅ Relatório criado com sucesso!"
         echo ""
@@ -409,9 +377,10 @@ HTML_FOOTER
         echo "🌐 ACESSE EM:"
         echo "https://rclessa25-hub.github.io/reports-wlimoveis/"
         echo ""
-        echo "✅ FUNCIONALIDADES INCLUÍDAS:"
+        echo "✅ FUNCIONALIDADES:"
         echo "• 📁 Lista completa de arquivos"
         echo "• ⚡ Contagem de funções JavaScript"
         echo "• 📊 Estatísticas precisas"
         echo "• 📜 Código completo sem limitações"
         echo "• 🏷️ Categorização por tipo"
+        echo "• 🎨 Design limpo e funcional"
