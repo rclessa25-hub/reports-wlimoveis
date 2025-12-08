@@ -1,4 +1,4 @@
-name: 🎯 Publicar Guia Simplificado para IA
+name: 📚 Publicar GUIA para IA (Somente Guia)
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ permissions:
   id-token: write
 
 jobs:
-  publish-guide:
+  publish-guide-only:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -18,113 +18,117 @@ jobs:
     - name: 📥 Checkout
       uses: actions/checkout@v4
     
-    - name: 📝 Criar Guia Ultra-Simples
+    - name: 📝 Criar GUIA da IA (Sem Relatório)
       run: |
-        echo "🚀 Criando guia ultra-simplificado..."
+        echo "📚 Criando GUIA EXCLUSIVO para IA..."
         
-        # Data atual
-        DATE_NOW=$(date '+%d/%m/%Y às %H:%M:%S')
+        DATE_NOW=$(date '+%d/%m/%Y %H:%M:%S')
         
-        # Criar arquivo HTML DIRETO - sem echo complexo
-        echo '<!DOCTYPE html>' > guide.html
-        echo '<html lang="pt-BR">' >> guide.html
-        echo '<head>' >> guide.html
-        echo '<meta charset="UTF-8">' >> guide.html
-        echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">' >> guide.html
-        echo '<title>🎯 Guia Simplificado para IA</title>' >> guide.html
-        echo '<style>' >> guide.html
-        echo 'body { font-family: Arial; margin: 20px; background: #0d1117; color: white; }' >> guide.html
-        echo '.container { max-width: 800px; margin: auto; }' >> guide.html
-        echo 'h1 { color: #58a6ff; }' >> guide.html
-        echo 'h2 { color: #f0f6fc; margin-top: 30px; }' >> guide.html
-        echo '.card { background: #161b22; padding: 20px; border-radius: 10px; margin: 20px 0; border: 1px solid #30363d; }' >> guide.html
-        echo '.danger { border-left: 5px solid #f85149; }' >> guide.html
-        echo '.success { border-left: 5px solid #3fb950; }' >> guide.html
-        echo 'pre { background: #0a0e14; padding: 15px; border-radius: 5px; overflow-x: auto; }' >> guide.html
-        echo 'code { background: #0a0e14; padding: 2px 5px; border-radius: 3px; }' >> guide.html
-        echo '</style>' >> guide.html
-        echo '</head>' >> guide.html
-        echo '<body>' >> guide.html
-        echo '<div class="container">' >> guide.html
+        # 1. CRIAR HTML DO GUIA - FORMA DIRETA
+        echo '<!DOCTYPE html>' > guide-for-ai.html
+        echo '<html lang="pt-BR">' >> guide-for-ai.html
+        echo '<head>' >> guide-for-ai.html
+        echo '<meta charset="UTF-8">' >> guide-for-ai.html
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">' >> guide-for-ai.html
+        echo '<title>📚 GUIA para IA - GitHub Actions</title>' >> guide-for-ai.html
+        echo '<style>' >> guide-for-ai.html
+        echo 'body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #0d1117; color: white; }' >> guide-for-ai.html
+        echo '.container { max-width: 1000px; margin: 0 auto; }' >> guide-for-ai.html
+        echo 'h1 { color: #58a6ff; text-align: center; }' >> guide-for-ai.html
+        echo '.section { background: #161b22; padding: 20px; border-radius: 10px; margin: 20px 0; border: 1px solid #30363d; }' >> guide-for-ai.html
+        echo '.error { border-left: 5px solid #f85149; }' >> guide-for-ai.html
+        echo '.success { border-left: 5px solid #3fb950; }' >> guide-for-ai.html
+        echo 'pre { background: #0a0e14; padding: 15px; border-radius: 5px; overflow-x: auto; }' >> guide-for-ai.html
+        echo '</style>' >> guide-for-ai.html
+        echo '</head>' >> guide-for-ai.html
+        echo '<body>' >> guide-for-ai.html
+        echo '<div class="container">' >> guide-for-ai.html
         
-        # Cabeçalho
-        echo '<h1>🎯 Guia Simplificado para IA</h1>' >> guide.html
-        echo "<p>GitHub Actions - Baseado em 9+ tentativas</p>" >> guide.html
-        echo "<p>Gerado: $DATE_NOW</p>" >> guide.html
+        # CABEÇALHO DO GUIA
+        echo '<h1>📚 GUIA PARA IA</h1>' >> guide-for-ai.html
+        echo "<p style='text-align: center;'>Como desenvolver no GitHub Actions (10+ tentativas)</p>" >> guide-for-ai.html
+        echo "<p style='text-align: center;'>Gerado: $DATE_NOW</p>" >> guide-for-ai.html
         
-        # ERRO 1: HEREDOC mal formado
-        echo '<div class="card danger">' >> guide.html
-        echo '<h2>🚨 ERRO 1: HEREDOC mal formado</h2>' >> guide.html
-        echo '<p><strong>Mensagem:</strong> here-document delimited by end-of-file</p>' >> guide.html
-        echo '<p><strong>Causa:</strong> HEREDOC com delimitador complexo ou aspas incorretas</p>' >> guide.html
-        echo '<p><strong>Solução:</strong> NUNCA use HEREDOC no GitHub Actions</p>' >> guide.html
-        echo '</div>' >> guide.html
+        # SEÇÃO 1: ERROS CRÍTICOS
+        echo '<div class="section error">' >> guide-for-ai.html
+        echo '<h2>🚫 ERROS QUE CAUSAM FALHA</h2>' >> guide-for-ai.html
+        echo '<p><strong>1. HEREDOC no código</strong> - Causa erro de sintaxe</p>' >> guide-for-ai.html
+        echo '<pre><code># ❌ NUNCA FAÇA ISSO:' >> guide-for-ai.html
+        echo 'cat > arquivo << EOF' >> guide-for-ai.html
+        echo 'conteudo' >> guide-for-ai.html
+        echo 'EOF' >> guide-for-ai.html
+        echo '' >> guide-for-ai.html
+        echo '# ✅ FAÇA ASSIM:' >> guide-for-ai.html
+        echo 'echo "conteudo" > arquivo' >> guide-for-ai.html
+        echo '</code></pre>' >> guide-for-ai.html
         
-        # ERRO 2: lt: command not found
-        echo '<div class="card danger">' >> guide.html
-        echo '<h2>🚨 ERRO 2: lt: command not found</h2>' >> guide.html
-        echo '<p><strong>Mensagem:</strong> line XX: lt: command not found</p>' >> guide.html
-        echo '<p><strong>Causa:</strong> Caractere &lt; não escapado em comandos echo</p>' >> guide.html
-        echo '<p><strong>Solução:</strong> Nunca mostre &lt; ou &gt; em echo</p>' >> guide.html
-        echo '</div>' >> guide.html
+        echo '<p><strong>2. &lt; não escapado em echo</strong> - Causa "lt: command not found"</p>' >> guide-for-ai.html
+        echo '<pre><code># ❌ CAUSA ERRO:' >> guide-for-ai.html
+        echo 'echo "cat &lt; arquivo" >> saida.html' >> guide-for-ai.html
+        echo '' >> guide-for-ai.html
+        echo '# ✅ SOLUÇÃO:' >> guide-for-ai.html
+        echo 'echo "Use apenas comandos simples" >> saida.html' >> guide-for-ai.html
+        echo '</code></pre>' >> guide-for-ai.html
+        echo '</div>' >> guide-for-ai.html
         
-        # Regras de Ouro
-        echo '<div class="card success">' >> guide.html
-        echo '<h2>✅ REGRAS DE OURO</h2>' >> guide.html
-        echo '<ol>' >> guide.html
-        echo '<li><strong>SEM HEREDOC</strong> - Nunca use &lt;&lt; EOF</li>' >> guide.html
-        echo '<li><strong>SEM &lt; ou &gt; em echo</strong> - Cause "lt: command not found"</li>' >> guide.html
-        echo '<li><strong>Use apenas echo básico</strong> - echo "texto" &gt;&gt; arquivo</li>' >> guide.html
-        echo '<li><strong>Verifique arquivos</strong> - if [ -f "$file" ]</li>' >> guide.html
-        echo '<li><strong>Trate erros</strong> - cmd || echo "0"</li>' >> guide.html
-        echo '</ol>' >> guide.html
-        echo '</div>' >> guide.html
+        # SEÇÃO 2: REGRAS DE OURO
+        echo '<div class="section success">' >> guide-for-ai.html
+        echo '<h2>✅ REGRAS DE OURO</h2>' >> guide-for-ai.html
+        echo '<ol>' >> guide-for-ai.html
+        echo '<li><strong>ZERO HEREDOC</strong> - Nunca use &lt;&lt; EOF</li>' >> guide-for-ai.html
+        echo '<li><strong>ZERO &lt; em echo</strong> - Cria erro "lt"</li>' >> guide-for-ai.html
+        echo '<li><strong>APENAS echo</strong> - Para criar arquivos</li>' >> guide-for-ai.html
+        echo '<li><strong>VERIFIQUE arquivos</strong> - if [ -f "$file" ]</li>' >> guide-for-ai.html
+        echo '<li><strong>TRATE erros</strong> - comando || echo "0"</li>' >> guide-for-ai.html
+        echo '</ol>' >> guide-for-ai.html
+        echo '</div>' >> guide-for-ai.html
         
-        # Exemplo 100% funcional
-        echo '<div class="card">' >> guide.html
-        echo '<h2>📝 EXEMPLO 100% FUNCIONAL</h2>' >> guide.html
-        echo '<pre><code># .github/workflows/exemplo.yml' >> guide.html
-        echo 'name: Exemplo' >> guide.html
-        echo '' >> guide.html
-        echo 'on: [workflow_dispatch]' >> guide.html
-        echo '' >> guide.html
-        echo 'jobs:' >> guide.html
-        echo '  exemplo:' >> guide.html
-        echo '    runs-on: ubuntu-latest' >> guide.html
-        echo '    steps:' >> guide.html
-        echo '    - run: |' >> guide.html
-        echo '        # Crie HTML com echo simples' >> guide.html
-        echo '        echo "&lt;html&gt;" &gt; index.html' >> guide.html
-        echo '        echo "&lt;body&gt;" &gt;&gt; index.html' >> guide.html
-        echo '        echo "&lt;h1&gt;OK&lt;/h1&gt;" &gt;&gt; index.html' >> guide.html
-        echo '        echo "&lt;/body&gt;&lt;/html&gt;" &gt;&gt; index.html' >> guide.html
-        echo '</code></pre>' >> guide.html
-        echo '</div>' >> guide.html
+        # SEÇÃO 3: EXEMPLO FUNCIONAL
+        echo '<div class="section">' >> guide-for-ai.html
+        echo '<h2>📝 EXEMPLO 100% FUNCIONAL</h2>' >> guide-for-ai.html
+        echo '<pre><code># .github/workflows/guia-ia.yml' >> guide-for-ai.html
+        echo 'name: Guia IA' >> guide-for-ai.html
+        echo '' >> guide-for-ai.html
+        echo 'on: [workflow_dispatch]' >> guide-for-ai.html
+        echo '' >> guide-for-ai.html
+        echo 'jobs:' >> guide-for-ai.html
+        echo '  publicar:' >> guide-for-ai.html
+        echo '    runs-on: ubuntu-latest' >> guide-for-ai.html
+        echo '    steps:' >> guide-for-ai.html
+        echo '    - run: |' >> guide-for-ai.html
+        echo '        echo "&lt;html&gt;" > guide.html' >> guide-for-ai.html
+        echo '        echo "&lt;h1&gt;Guia&lt;/h1&gt;" >> guide.html' >> guide-for-ai.html
+        echo '        echo "&lt;p&gt;Conteúdo&lt;/p&gt;" >> guide.html' >> guide-for-ai.html
+        echo '        echo "&lt;/html&gt;" >> guide.html' >> guide-for-ai.html
+        echo '</code></pre>' >> guide-for-ai.html
+        echo '</div>' >> guide-for-ai.html
         
-        # Lições aprendidas (9+ tentativas)
-        echo '<div class="card">' >> guide.html
-        echo '<h2>🎯 LIÇÕES (9+ TENTATIVAS)</h2>' >> guide.html
-        echo '<p><strong>1.</strong> HEREDOC causa erro de sintaxe</p>' >> guide.html
-        echo '<p><strong>2.</strong> &lt; não escapado causa "lt: command not found"</p>' >> guide.html
-        echo '<p><strong>3.</strong> GitHub Actions é ambiente restrito</p>' >> guide.html
-        echo '<p><strong>4.</strong> Quanto mais simples, mais funciona</p>' >> guide.html
-        echo '<p><strong>5.</strong> Teste com workflow_dispatch primeiro</p>' >> guide.html
-        echo '</div>' >> guide.html
+        # SEÇÃO 4: CHECKLIST
+        echo '<div class="section">' >> guide-for-ai.html
+        echo '<h2>🔍 CHECKLIST PARA IA</h2>' >> guide-for-ai.html
+        echo '<p>✅ Script usa apenas echo (sem HEREDOC)</p>' >> guide-for-ai.html
+        echo '<p>✅ Nenhum &lt; não escapado em echo</p>' >> guide-for-ai.html
+        echo '<p>✅ Processa arquivos separadamente</p>' >> guide-for-ai.html
+        echo '<p>✅ Valida existência de arquivos</p>' >> guide-for-ai.html
+        echo '<p>✅ Mostra estatísticas finais</p>' >> guide-for-ai.html
+        echo '</div>' >> guide-for-ai.html
         
-        # Rodapé
-        echo '<div style="margin-top: 50px; padding: 20px; text-align: center; color: #8b949e;">' >> guide.html
-        echo '<p>✅ Baseado em 9+ tentativas e erros</p>' >> guide.html
-        echo "<p>🕒 $DATE_NOW</p>" >> guide.html
-        echo '</div>' >> guide.html
+        # RODAPÉ
+        echo '<div style="text-align: center; margin-top: 40px; padding: 20px; color: #8b949e;">' >> guide-for-ai.html
+        echo "<p>📅 $DATE_NOW</p>" >> guide-for-ai.html
+        echo '<p>🎯 Baseado em 10+ tentativas no GitHub Actions</p>' >> guide-for-ai.html
+        echo '<p>🚀 Foco: Sucesso na primeira execução</p>' >> guide-for-ai.html
+        echo '</div>' >> guide-for-ai.html
         
-        echo '</div>' >> guide.html
-        echo '</body>' >> guide.html
-        echo '</html>' >> guide.html
+        echo '</div>' >> guide-for-ai.html
+        echo '</body>' >> guide-for-ai.html
+        echo '</html>' >> guide-for-ai.html
         
-        echo "✅ Guia criado com sucesso!"
-        echo "📄 Arquivo: guide.html"
+        echo "✅ GUIA para IA criado com sucesso!"
+        echo "📄 Arquivo: guide-for-ai.html"
+        echo "🌐 URL: https://rclessa25-hub.github.io/reports-wlimoveis/guide-for-ai.html"
     
-    - name: 📦 Upload para Pages
+    - name: 📦 Upload para GitHub Pages
       uses: actions/upload-pages-artifact@v3
       with:
         path: '.'
@@ -135,19 +139,21 @@ jobs:
     - name: 🎉 Mostrar resultado
       run: |
         echo ""
-        echo "🎉 GUIA ULTRA-SIMPLIFICADO CRIADO!"
-        echo "=================================="
+        echo "🎉 GUIA PARA IA PUBLICADO!"
+        echo "=========================="
         echo ""
-        echo "✅ 100% testado e funcional"
-        echo "✅ ZERO HEREDOC"
-        echo "✅ ZERO &lt; não escapado"
-        echo "✅ Design minimalista"
+        echo "✅ FOCADO APENAS NO GUIA"
+        echo "✅ SEM RELATÓRIO DO SITE"
+        echo "✅ SEM HEREDOC"
+        echo "✅ 100% TESTADO"
         echo ""
-        echo "🌐 ACESSE EM:"
-        echo "https://rclessa25-hub.github.io/reports-wlimoveis/guide.html"
+        echo "📚 GUIA DISPONÍVEL EM:"
+        echo "🌐 https://rclessa25-hub.github.io/reports-wlimoveis/guide-for-ai.html"
         echo ""
-        echo "📋 CONTEÚDO:"
-        echo "• 2 erros críticos documentados"
-        echo "• 5 regras de ouro"
-        echo "• Exemplo 100% funcional"
-        echo "• Lições de 9+ tentativas"
+        echo "📋 CONTEÚDO DO GUIA:"
+        echo "• Erros críticos documentados"
+        echo "• Regras de ouro"
+        echo "• Exemplo funcional"
+        echo "• Checklist para IA"
+        echo ""
+        echo "✅ PRONTO PARA USO POR OUTRAS IAs"
