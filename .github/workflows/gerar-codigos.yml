@@ -1,4 +1,4 @@
-name: 🔧 Gerar Códigos
+name: 🔧 Gerar Códigos index-html
 
 on:
   workflow_dispatch:
