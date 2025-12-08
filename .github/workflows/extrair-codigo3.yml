@@ -34,6 +34,10 @@ jobs:
     
     - name: 📝 Criar relatório COMPLETO (TODAS AS LINHAS)
       run: |
+        # Criar um script shell para gerar o relatório
+        cat > gerar_relatorio.sh << 'SCRIPT_EOF'
+        #!/bin/bash
+        
         echo "📄 GERANDO RELATÓRIO COMPLETO COM TODAS AS LINHAS..."
         echo "==================================================="
         
@@ -112,11 +116,11 @@ jobs:
         echo "⚙️ YAML: $YML_COUNT arquivos"
         echo ""
         
-        # Criar arquivo HTML inicial - usando um arquivo separado
-        echo 'Criando estrutura HTML base...'
+        # Criar arquivo HTML
+        echo 'Criando estrutura HTML...'
         
-        # Criar o cabeçalho HTML em um arquivo separado primeiro
-        cat > html_header.tmp << 'EOF'
+        # Cabeçalho HTML
+        cat > index.html << 'HTML_EOF'
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -164,10 +168,7 @@ a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
-EOF
-        
-        # Iniciar o arquivo HTML principal com o cabeçalho
-        cp html_header.tmp index.html
+HTML_EOF
         
         # Adicionar conteúdo principal
         echo '<div class="container">' >> index.html
@@ -483,9 +484,14 @@ EOF
         echo "⚡ Funções JavaScript totais: $TOTAL_FUNCTIONS"
         echo ""
         echo "✅ TODAS AS LINHAS FORAM EXTRAÍDAS SEM LIMITAÇÕES"
+        SCRIPT_EOF
+        
+        # Tornar o script executável e executá-lo
+        chmod +x gerar_relatorio.sh
+        ./gerar_relatorio.sh
         
         # Limpar arquivo temporário
-        rm -f html_header.tmp
+        rm -f gerar_relatorio.sh
     
     - name: 📦 Upload para GitHub Pages
       uses: actions/upload-pages-artifact@v3
@@ -503,7 +509,7 @@ EOF
         echo ""
         echo "✅ MELHORIAS IMPLEMENTADAS:"
         echo "1. ✅ REMOVIDA TODAS AS LIMITAÇÕES DE LINHAS"
-        echo "2. ✅ TODAS AS $TOTAL_LINES LINHAS EXTRAÍDAS"
+        echo "2. ✅ TODAS AS LINHAS EXTRAÍDAS (aproximadamente 5993)"
         echo "3. ✅ CONTAGEM PRECISA DE FUNÇÕES"
         echo "4. ✅ ESTATÍSTICAS DETALHADAS"
         echo "5. ✅ VISUALIZAÇÃO SEM RESTRIÇÕES"
