@@ -69,6 +69,9 @@ jobs:
         echo 'a { color: #2ea44f; text-decoration: none; }' >> index.html
         echo 'a:hover { text-decoration: underline; }' >> index.html
         echo '.complete-badge { background: #238636; color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8em; margin-left: 10px; }' >> index.html
+        echo '.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }' >> index.html
+        echo '.summary-item { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px; text-align: center; }' >> index.html
+        echo '.summary-number { font-size: 2em; font-weight: bold; color: #2ea44f; margin: 10px 0; }' >> index.html
         echo '</style>' >> index.html
         echo '</head>' >> index.html
         echo '<body>' >> index.html
@@ -83,6 +86,13 @@ jobs:
         echo '<h2>📁 Lista de Arquivos Extraídos (COMPLETO)</h2>' >> index.html
         echo '<div class="file-list">' >> index.html
         
+        # Inicializar contadores
+        HTML_COUNT=0
+        JS_COUNT=0
+        CSS_COUNT=0
+        JSON_COUNT=0
+        TOTAL_LINES=0
+        
         # Adicionar cada arquivo à lista
         for file in fonte-completo/*.html fonte-completo/*.js fonte-completo/*.css fonte-completo/*.json; do
           if [ -f "$file" ]; then
@@ -93,18 +103,22 @@ jobs:
               "html")
                 class="html"
                 icon="📄"
+                HTML_COUNT=$((HTML_COUNT + 1))
                 ;;
               "js")
                 class="js"
                 icon="📜"
+                JS_COUNT=$((JS_COUNT + 1))
                 ;;
               "css")
                 class="css"
                 icon="🎨"
+                CSS_COUNT=$((CSS_COUNT + 1))
                 ;;
               "json")
                 class="json"
                 icon="📋"
+                JSON_COUNT=$((JSON_COUNT + 1))
                 ;;
               *)
                 class=""
@@ -116,6 +130,7 @@ jobs:
             lines=$(wc -l < "$file" 2>/dev/null || echo "0")
             size=$(wc -c < "$file" 2>/dev/null || echo "0")
             size_kb=$((size / 1024))
+            TOTAL_LINES=$((TOTAL_LINES + lines))
             
             echo '<div class="file-card">' >> index.html
             echo '<h3>'"$icon <span class=\"$class\">$filename</span>"'</h3>' >> index.html
@@ -128,7 +143,7 @@ jobs:
         done
         
         # Arquivos em subpastas
-        for file in fonte-completo/js/*.js fonte-completo/js/modules/*.js fonte-completo/js/components/*.js fonte-completo/css/*.css; do
+        for file in fonte-completo/js/*.js fonte-completo/js/modules/*.js fonte-completo/js/components/*.js fonte-completo/css/*.css fonte-completo/**/*.json; do
           if [ -f "$file" ]; then
             filename=$(basename "$file")
             extension="${filename##*.}"
@@ -138,10 +153,17 @@ jobs:
               "js")
                 class="js"
                 icon="📜"
+                JS_COUNT=$((JS_COUNT + 1))
                 ;;
               "css")
                 class="css"
                 icon="🎨"
+                CSS_COUNT=$((CSS_COUNT + 1))
+                ;;
+              "json")
+                class="json"
+                icon="📋"
+                JSON_COUNT=$((JSON_COUNT + 1))
                 ;;
               *)
                 class=""
@@ -152,6 +174,7 @@ jobs:
             lines=$(wc -l < "$file" 2>/dev/null || echo "0")
             size=$(wc -c < "$file" 2>/dev/null || echo "0")
             size_kb=$((size / 1024))
+            TOTAL_LINES=$((TOTAL_LINES + lines))
             
             echo '<div class="file-card">' >> index.html
             echo '<h3>'"$icon <span class=\"$class\">$filename</span>"'</h3>' >> index.html
@@ -262,37 +285,58 @@ jobs:
           fi
         done
         
-        # RESUMO COMPLETO
+        # RESUMO COMPLETO COM VALORES REAIS
+        TOTAL_FILES=$((HTML_COUNT + JS_COUNT + CSS_COUNT + JSON_COUNT))
+        
         echo '<div style="background: #161b22; padding: 25px; border-radius: 10px; margin: 40px 0;">' >> index.html
         echo '<h2>📊 Resumo da Extração (COMPLETO)</h2>' >> index.html
         
-        # Contar arquivos
-        html_count=$(find fonte-completo -name "*.html" -type f | wc -l)
-        js_count=$(find fonte-completo -name "*.js" -type f | wc -l)
-        css_count=$(find fonte-completo -name "*.css" -type f | wc -l)
-        json_count=$(find fonte-completo -name "*.json" -type f | wc -l)
+        echo '<div class="summary-grid">' >> index.html
+        echo '<div class="summary-item">' >> index.html
+        echo '<h4>Total de Arquivos</h4>' >> index.html
+        echo '<div class="summary-number">'"$TOTAL_FILES"'</div>' >> index.html
+        echo '<p>Todos os arquivos extraídos</p>' >> index.html
+        echo '</div>' >> index.html
         
-        # Calcular linhas totais
-        total_lines=0
-        for file in $(find fonte-completo -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" -type f); do
-          lines=$(wc -l < "$file" 2>/dev/null || echo "0")
-          total_lines=$((total_lines + lines))
-        done
+        echo '<div class="summary-item">' >> index.html
+        echo '<h4>Total de Linhas</h4>' >> index.html
+        echo '<div class="summary-number">'"$TOTAL_LINES"'</div>' >> index.html
+        echo '<p>TODAS as linhas de código</p>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '<div class="summary-item">' >> index.html
+        echo '<h4>HTML</h4>' >> index.html
+        echo '<div class="summary-number">'"$HTML_COUNT"'</div>' >> index.html
+        echo '<p>Arquivos</p>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '<div class="summary-item">' >> index.html
+        echo '<h4>JavaScript</h4>' >> index.html
+        echo '<div class="summary-number">'"$JS_COUNT"'</div>' >> index.html
+        echo '<p>Arquivos</p>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '<div class="summary-item">' >> index.html
+        echo '<h4>CSS</h4>' >> index.html
+        echo '<div class="summary-number">'"$CSS_COUNT"'</div>' >> index.html
+        echo '<p>Arquivos</p>' >> index.html
+        echo '</div>' >> index.html
+        
+        echo '<div class="summary-item">' >> index.html
+        echo '<h4>JSON</h4>' >> index.html
+        echo '<div class="summary-number">'"$JSON_COUNT"'</div>' >> index.html
+        echo '<p>Arquivos</p>' >> index.html
+        echo '</div>' >> index.html
+        echo '</div>' >> index.html
         
         echo '<p><strong>✅ Status:</strong> <span style="color: #2ea44f; font-weight: bold;">Extração COMPLETA - SEM LIMITAÇÕES</span></p>' >> index.html
-        echo '<p><strong>Total de arquivos extraídos:</strong> '"$((html_count + js_count + css_count + json_count))"'</p>' >> index.html
-        echo '<p><strong>HTML:</strong> '"$html_count"' arquivos</p>' >> index.html
-        echo '<p><strong>JavaScript:</strong> '"$js_count"' arquivos</p>' >> index.html
-        echo '<p><strong>CSS:</strong> '"$css_count"' arquivos</p>' >> index.html
-        echo '<p><strong>JSON:</strong> '"$json_count"' arquivos</p>' >> index.html
-        echo '<p><strong>Linhas de código totais:</strong> '"$total_lines"' <span style="color: #2ea44f;">(TODAS extraídas)</span></p>' >> index.html
         echo '<p><strong>Última atualização:</strong> '"$DATE_NOW"'</p>' >> index.html
         echo '</div>' >> index.html
         
         # FOOTER
         echo '<footer style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #30363d; color: #8b949e;">' >> index.html
         echo '<p><strong>📥 Extração COMPLETA do Código Fonte</strong></p>' >> index.html
-        echo '<p>✅ TODAS as '"$total_lines"' linhas foram extraídas SEM limitações</p>' >> index.html
+        echo '<p>✅ TODAS as '"$TOTAL_LINES"' linhas foram extraídas SEM limitações</p>' >> index.html
         echo '<p>Gerado automaticamente em '"$DATE_NOW"'</p>' >> index.html
         echo '<div style="margin-top: 15px;">' >> index.html
         echo '<a href="https://rclessa25-hub.github.io/imoveis-maceio/" style="color: #2ea44f; margin: 0 10px;">' >> index.html
@@ -327,15 +371,17 @@ jobs:
         
         echo "✅ Relatório COMPLETO com TODAS as linhas gerado!"
         
-        # Mostrar estatísticas
+        # Mostrar estatísticas REAIS
         echo ""
-        echo "📊 ESTATÍSTICAS DA EXTRAÇÃO (COMPLETA):"
-        echo "======================================"
-        echo "HTML: $html_count arquivos"
-        echo "JavaScript: $js_count arquivos"
-        echo "CSS: $css_count arquivos"
-        echo "Total de linhas: $total_lines"
-        echo "✅ STATUS: TODAS as $total_lines linhas foram extraídas SEM limitações!"
+        echo "📊 ESTATÍSTICAS REAIS DA EXTRAÇÃO:"
+        echo "=================================="
+        echo "Total de arquivos: $TOTAL_FILES"
+        echo "Total de linhas: $TOTAL_LINES"
+        echo "HTML: $HTML_COUNT arquivos"
+        echo "JavaScript: $JS_COUNT arquivos"
+        echo "CSS: $CSS_COUNT arquivos"
+        echo "JSON: $JSON_COUNT arquivos"
+        echo "✅ STATUS: TODAS as $TOTAL_LINES linhas foram extraídas SEM limitações!"
     
     - name: 📦 Upload para GitHub Pages
       uses: actions/upload-pages-artifact@v3
@@ -358,7 +404,7 @@ jobs:
         echo "1. ✅ Código COMPLETO do index.html (TODAS as linhas)"
         echo "2. ✅ Todos os módulos JavaScript (SEM cortes)"
         echo "3. ✅ Arquivos CSS completos (100% extraídos)"
-        echo "4. 📊 Estatísticas reais e precisas"
+        echo "4. 📊 Estatísticas REAIS e precisas"
         echo "5. 🔍 Visualização com numeração de linhas"
         echo "6. 🚫 NENHUMA limitação de visualização"
         echo "7. 🔄 Atualização automática"
