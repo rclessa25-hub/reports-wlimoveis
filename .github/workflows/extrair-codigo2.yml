@@ -242,19 +242,17 @@ jobs:
         echo "📊 Linhas: $TOTAL_LINHAS"
         echo "⚡ Funções JS: $TOTAL_FUNCOES"
         
-        # Salvar dados em arquivo texto também
-        cat > dados-exatos.txt << EOF
-=== DADOS EXATOS DO CÓDIGO ===
-Data: $DATA_AGORA
-Total de arquivos: $TOTAL_ARQUIVOS
-Total de linhas: $TOTAL_LINHAS
-Total de funções JavaScript: $TOTAL_FUNCOES
-HTML: $HTML_ARQUIVOS arquivos
-JavaScript: $JS_ARQUIVOS arquivos
-CSS: $CSS_ARQUIVOS arquivos
-JSON: $JSON_ARQUIVOS arquivos
-
-EOF
+        # Salvar dados em arquivo texto com ECHO - SEM HEREDOC
+        echo "=== DADOS EXATOS DO CÓDIGO ===" > dados-exatos.txt
+        echo "Data: $DATA_AGORA" >> dados-exatos.txt
+        echo "Total de arquivos: $TOTAL_ARQUIVOS" >> dados-exatos.txt
+        echo "Total de linhas: $TOTAL_LINHAS" >> dados-exatos.txt
+        echo "Total de funções JavaScript: $TOTAL_FUNCOES" >> dados-exatos.txt
+        echo "HTML: $HTML_ARQUIVOS arquivos" >> dados-exatos.txt
+        echo "JavaScript: $JS_ARQUIVOS arquivos" >> dados-exatos.txt
+        echo "CSS: $CSS_ARQUIVOS arquivos" >> dados-exatos.txt
+        echo "JSON: $JSON_ARQUIVOS arquivos" >> dados-exatos.txt
+        echo "" >> dados-exatos.txt
     
     - name: 📦 Upload para GitHub Pages
       uses: actions/upload-pages-artifact@v3
@@ -279,3 +277,6 @@ EOF
         echo "• 📁 Lista completa de arquivos"
         echo "• 🔍 Comparação com outros relatórios"
         echo "• 📈 Estatísticas detalhadas"
+        echo ""
+        echo "⚠️ NOTA: Este relatório usa APENAS echo, sem HEREDOC."
+        echo "        Garantido para funcionar sem erros!"
