@@ -1,0 +1,237 @@
+name: 📋 Plano de Scripts
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  generate-plan:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+    
+    - name: 📊 Criar relatório HTML
+      run: |
+        echo "📋 CRIANDO PLANO DE SCRIPTS..."
+        echo "=============================="
+        
+        DATE_NOW=$(date '+%d/%m/%Y às %H:%M:%S')
+        
+        # Criar HTML linha por linha (SEM HEREDOC)
+        echo '<!DOCTYPE html>' > index.html
+        echo '<html lang="pt-BR">' >> index.html
+        echo '<head>' >> index.html
+        echo '    <meta charset="UTF-8">' >> index.html
+        echo '    <meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
+        echo '    <title>📋 Plano de Scripts - Imóveis Maceió</title>' >> index.html
+        echo '    <style>' >> index.html
+        echo '        body { font-family: Arial, sans-serif; background: #0d1117; color: white; margin: 0; padding: 20px; }' >> index.html
+        echo '        .container { max-width: 1200px; margin: 0 auto; }' >> index.html
+        echo '        header { text-align: center; padding: 30px 0; border-bottom: 3px solid #2ea44f; }' >> index.html
+        echo '        h1 { color: #2ea44f; font-size: 2.5em; }' >> index.html
+        echo '        h2 { color: #58a6ff; margin: 30px 0 20px; }' >> index.html
+        echo '        .hierarchy { background: #161b22; padding: 25px; border-radius: 10px; margin: 20px 0; }' >> index.html
+        echo '        .level-0 { color: #2ea44f; font-weight: bold; margin-left: 0; }' >> index.html
+        echo '        .level-1 { color: #58a6ff; margin-left: 20px; }' >> index.html
+        echo '        .level-2 { color: white; margin-left: 40px; }' >> index.html
+        echo '        .level-3 { color: #8b949e; margin-left: 60px; }' >> index.html
+        echo '        .modules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }' >> index.html
+        echo '        .module-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }' >> index.html
+        echo '        .module-card h3 { color: #58a6ff; margin-top: 0; }' >> index.html
+        echo '        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 30px 0; }' >> index.html
+        echo '        .stat { background: #161b22; padding: 20px; text-align: center; border-radius: 8px; }' >> index.html
+        echo '        .stat .number { font-size: 2em; color: #2ea44f; font-weight: bold; }' >> index.html
+        echo '        @media (max-width: 768px) { .stats { grid-template-columns: repeat(2, 1fr); } }' >> index.html
+        echo '    </style>' >> index.html
+        echo '</head>' >> index.html
+        echo '<body>' >> index.html
+        echo '    <div class="container">' >> index.html
+        echo '        <header>' >> index.html
+        echo '            <h1>📋 Plano de Scripts</h1>' >> index.html
+        echo '            <p>Imóveis Maceió - Hierarquia Modular Completa</p>' >> index.html
+        echo '            <p><strong>Gerado em:</strong> '"$DATE_NOW"'</p>' >> index.html
+        echo '        </header>' >> index.html
+        echo '' >> index.html
+        echo '        <div class="stats">' >> index.html
+        echo '            <div class="stat">' >> index.html
+        echo '                <div class="number">5</div>' >> index.html
+        echo '                <div>Módulos JS</div>' >> index.html
+        echo '            </div>' >> index.html
+        echo '            <div class="stat">' >> index.html
+        echo '                <div class="number">2</div>' >> index.html
+        echo '                <div>Componentes</div>' >> index.html
+        echo '            </div>' >> index.html
+        echo '            <div class="stat">' >> index.html
+        echo '                <div class="number">7</div>' >> index.html
+        echo '                <div>Arquivos JS</div>' >> index.html
+        echo '            </div>' >> index.html
+        echo '            <div class="stat">' >> index.html
+        echo '                <div class="number">5</div>' >> index.html
+        echo '                <div>Arquivos CSS</div>' >> index.html
+        echo '            </div>' >> index.html
+        echo '        </div>' >> index.html
+        echo '' >> index.html
+        echo '        <h2>🏗️ Hierarquia de Módulos (Plano de Contas)</h2>' >> index.html
+        echo '        <div class="hierarchy">' >> index.html
+        echo '            <div class="level-0">1.0 - MÓDULOS PRINCIPAIS (Ativos)</div>' >> index.html
+        echo '            <div class="level-1">1.1 - supabase.js (Infraestrutura)</div>' >> index.html
+        echo '            <div class="level-2">• Configuração do cliente</div>' >> index.html
+        echo '            <div class="level-2">• Métodos de autenticação</div>' >> index.html
+        echo '            <div class="level-2">• Queries do banco</div>' >> index.html
+        echo '            <div class="level-1">1.2 - properties.js (Negócio)</div>' >> index.html
+        echo '            <div class="level-2">• CRUD de imóveis</div>' >> index.html
+        echo '            <div class="level-2">• Filtros e busca</div>' >> index.html
+        echo '            <div class="level-2">• Paginação</div>' >> index.html
+        echo '            <div class="level-1">1.3 - admin.js (Administração)</div>' >> index.html
+        echo '            <div class="level-2">• Dashboard admin</div>' >> index.html
+        echo '            <div class="level-2">• Gestão de usuários</div>' >> index.html
+        echo '            <div class="level-2">• Estatísticas</div>' >> index.html
+        echo '            <div class="level-1">1.4 - gallery.js (Mídia)</div>' >> index.html
+        echo '            <div class="level-2">• Galeria de imagens</div>' >> index.html
+        echo '            <div class="level-2">• Lightbox</div>' >> index.html
+        echo '            <div class="level-2">• Upload</div>' >> index.html
+        echo '            <div class="level-1">1.5 - utils.js (Utilitários)</div>' >> index.html
+        echo '            <div class="level-2">• Formatação de dados</div>' >> index.html
+        echo '            <div class="level-2">• Validações</div>' >> index.html
+        echo '            <div class="level-2">• Helpers</div>' >> index.html
+        echo '' >> index.html
+        echo '            <div class="level-0">2.0 - COMPONENTES (Passivos)</div>' >> index.html
+        echo '            <div class="level-1">2.1 - Header.js (UI)</div>' >> index.html
+        echo '            <div class="level-2">• Cabeçalho responsivo</div>' >> index.html
+        echo '            <div class="level-2">• Navegação</div>' >> index.html
+        echo '            <div class="level-1">2.2 - PropertyCard.js (UI)</div>' >> index.html
+        echo '            <div class="level-2">• Card de imóvel</div>' >> index.html
+        echo '            <div class="level-2">• Favoritos</div>' >> index.html
+        echo '' >> index.html
+        echo '            <div class="level-0">3.0 - CSS (Patrimônio)</div>' >> index.html
+        echo '            <div class="level-1">3.1 - main.css (Global)</div>' >> index.html
+        echo '            <div class="level-1">3.2 - admin.css (Admin)</div>' >> index.html
+        echo '            <div class="level-1">3.3 - gallery.css (Galeria)</div>' >> index.html
+        echo '            <div class="level-1">3.4 - header.css (Cabeçalho)</div>' >> index.html
+        echo '            <div class="level-1">3.5 - responsive.css (Responsivo)</div>' >> index.html
+        echo '        </div>' >> index.html
+        echo '' >> index.html
+        echo '        <h2>🧩 Detalhamento por Módulo</h2>' >> index.html
+        echo '        <div class="modules-grid">' >> index.html
+        echo '            <div class="module-card">' >> index.html
+        echo '                <h3>supabase.js</h3>' >> index.html
+        echo '                <p><strong>Categoria:</strong> Infraestrutura</p>' >> index.html
+        echo '                <p><strong>Linhas:</strong> ~150</p>' >> index.html
+        echo '                <p><strong>Funções:</strong> 8</p>' >> index.html
+        echo '                <p><strong>Dependências:</strong> Supabase SDK</p>' >> index.html
+        echo '            </div>' >> index.html
+        echo '' >> index.html
+        echo '            <div class="module-card">' >> index.html
+        echo '                <h3>properties.js</h3>' >> index.html
+        echo '                <p><strong>Categoria:</strong> Negócio</strong></p>' >> index.html
+        echo '                <p><strong>Linhas:</strong> ~300</p>' >> index.html
+        echo '                <p><strong>Funções:</strong> 15+</p>' >> index.html
+        echo '                <p><strong>Dependências:</strong> supabase.js</p>' >> index.html
+        echo '            </div>' >> index.html
+        echo '' >> index.html
+        echo '            <div class="module-card">' >> index.html
+        echo '                <h3>admin.js</h3>' >> index.html
+        echo '                <p><strong>Categoria:</strong> Administração</p>' >> index.html
+        echo '                <p><strong>Linhas:</strong> ~250</p>' >> index.html
+        echo '                <p><strong>Funções:</strong> 12</p>' >> index.html
+        echo '                <p><strong>Dependências:</strong> supabase.js, utils.js</p>' >> index.html
+        echo '            </div>' >> index.html
+        echo '' >> index.html
+        echo '            <div class="module-card">' >> index.html
+        echo '                <h3>gallery.js</h3>' >> index.html
+        echo '                <p><strong>Categoria:</strong> Mídia</p>' >> index.html
+        echo '                <p><strong>Linhas:</strong> ~200</p>' >> index.html
+        echo '                <p><strong>Funções:</strong> 10</p>' >> index.html
+        echo '                <p><strong>Dependências:</strong> supabase.js</p>' >> index.html
+        echo '            </div>' >> index.html
+        echo '' >> index.html
+        echo '            <div class="module-card">' >> index.html
+        echo '                <h3>utils.js</h3>' >> index.html
+        echo '                <p><strong>Categoria:</strong> Utilitários</p>' >> index.html
+        echo '                <p><strong>Linhas:</strong> ~100</p>' >> index.html
+        echo '                <p><strong>Funções:</strong> 20+</p>' >> index.html
+        echo '                <p><strong>Dependências:</strong> Nenhuma</p>' >> index.html
+        echo '            </div>' >> index.html
+        echo '' >> index.html
+        echo '            <div class="module-card">' >> index.html
+        echo '                <h3>Header.js</h3>' >> index.html
+        echo '                <p><strong>Categoria:</strong> Componente UI</p>' >> index.html
+        echo '                <p><strong>Linhas:</strong> ~80</p>' >> index.html
+        echo '                <p><strong>Funções:</strong> 4</p>' >> index.html
+        echo '                <p><strong>Usado em:</strong> Todas as páginas</p>' >> index.html
+        echo '            </div>' >> index.html
+        echo '' >> index.html
+        echo '            <div class="module-card">' >> index.html
+        echo '                <h3>PropertyCard.js</h3>' >> index.html
+        echo '                <p><strong>Categoria:</strong> Componente UI</p>' >> index.html
+        echo '                <p><strong>Linhas:</strong> ~120</p>' >> index.html
+        echo '                <p><strong>Funções:</strong> 6</p>' >> index.html
+        echo '                <p><strong>Usado em:</strong> Listagens</p>' >> index.html
+        echo '            </div>' >> index.html
+        echo '        </div>' >> index.html
+        echo '' >> index.html
+        echo '        <div style="background: #161b22; padding: 25px; border-radius: 10px; margin: 30px 0;">' >> index.html
+        echo '            <h2>📊 Resumo do Sistema</h2>' >> index.html
+        echo '            <p><strong>Total de Scripts:</strong> 7 arquivos JavaScript</p>' >> index.html
+        echo '            <p><strong>Total de Estilos:</strong> 5 arquivos CSS</p>' >> index.html
+        echo '            <p><strong>Linhas estimadas:</strong> ~1.200 linhas de código</p>' >> index.html
+        echo '            <p><strong>Funções totais:</strong> ~75+ funções organizadas</p>' >> index.html
+        echo '            <p><strong>Arquitetura:</strong> Frontend Modular com Supabase</p>' >> index.html
+        echo '            <p><strong>Status:</strong> <span style="color: #2ea44f;">● Em produção</span></p>' >> index.html
+        echo '        </div>' >> index.html
+        echo '' >> index.html
+        echo '        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #30363d;">' >> index.html
+        echo '            <p><strong>📋 Plano de Scripts - Imóveis Maceió</strong></p>' >> index.html
+        echo '            <p>Gerado automaticamente em '"$DATE_NOW"'</p>' >> index.html
+        echo '            <p>' >> index.html
+        echo '                <a href="https://rclessa25-hub.github.io/imoveis-maceio/" style="color: #2ea44f; margin: 0 10px;">' >> index.html
+        echo '                    🌐 Site Principal' >> index.html
+        echo '                </a>' >> index.html
+        echo '                <a href="https://github.com/rclessa25-hub/imoveis-maceio" style="color: #2ea44f; margin: 0 10px;">' >> index.html
+        echo '                    💾 Código Fonte' >> index.html
+        echo '                </a>' >> index.html
+        echo '            </p>' >> index.html
+        echo '        </div>' >> index.html
+        echo '    </div>' >> index.html
+        echo '' >> index.html
+        echo '    <script>' >> index.html
+        echo '        console.log("📋 Plano de scripts carregado com sucesso!");' >> index.html
+        echo '    </script>' >> index.html
+        echo '</body>' >> index.html
+        echo '</html>' >> index.html
+        
+        echo "✅ Plano de scripts gerado com sucesso!"
+    
+    - name: 📦 Upload para GitHub Pages
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '.'
+    
+    - name: 🚀 Deploy
+      uses: actions/deploy-pages@v4
+    
+    - name: 🎉 Mostrar resultado
+      run: |
+        echo ""
+        echo "🎉 PLANO DE SCRIPTS PUBLICADO!"
+        echo "=============================="
+        echo ""
+        echo "🌐 ACESSE EM:"
+        echo "https://rclessa25-hub.github.io/reports-wlimoveis/"
+        echo ""
+        echo "📊 AGORA COM:"
+        echo "1. 📋 Hierarquia completa como plano de contas"
+        echo "2. 🏗️  Organização por módulos, componentes e CSS"
+        echo "3. 📈 Estatísticas detalhadas por arquivo"
+        echo "4. 🔗 Dependências mapeadas"
+        echo "5. ⚡ Carregamento instantâneo"
