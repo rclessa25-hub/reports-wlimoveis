@@ -32,7 +32,7 @@ jobs:
         echo "📁 Estrutura do projeto:"
         find fonte-completo -type f -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" -o -name "*.md" -o -name "*.yml" -o -name "*.yaml" | sort
     
-    - name: 📝 Criar relatório COMPLETO (SEM LIMITES)
+    - name: 📝 Criar relatório COMPLETO
       run: |
         echo "📄 GERANDO RELATÓRIO COMPLETO..."
         echo "================================="
@@ -43,83 +43,89 @@ jobs:
         echo "=========================="
         
         # Encontrar todos os arquivos
-        HTML_FILES=$(find fonte-completo -name "*.html" -type f 2>/dev/null || echo "")
-        JS_FILES=$(find fonte-completo -name "*.js" -type f 2>/dev/null || echo "")
-        CSS_FILES=$(find fonte-completo -name "*.css" -type f 2>/dev/null || echo "")
-        JSON_FILES=$(find fonte-completo -name "*.json" -type f 2>/dev/null || echo "")
-        MD_FILES=$(find fonte-completo -name "*.md" -type f 2>/dev/null || echo "")
-        YML_FILES=$(find fonte-completo \( -name "*.yml" -o -name "*.yaml" \) -type f 2>/dev/null || echo "")
+        HTML_FILES=$(find fonte-completo -name "*.html" -type f 2>/dev/null | sort || echo "")
+        JS_FILES=$(find fonte-completo -name "*.js" -type f 2>/dev/null | sort || echo "")
+        CSS_FILES=$(find fonte-completo -name "*.css" -type f 2>/dev/null | sort || echo "")
+        JSON_FILES=$(find fonte-completo -name "*.json" -type f 2>/dev/null | sort || echo "")
+        MD_FILES=$(find fonte-completo -name "*.md" -type f 2>/dev/null | sort || echo "")
+        YML_FILES=$(find fonte-completo \( -name "*.yml" -o -name "*.yaml" \) -type f 2>/dev/null | sort || echo "")
         
         # Contar arquivos
-        HTML_COUNT=$(echo "$HTML_FILES" | wc -l 2>/dev/null | tr -cd '0-9' || echo "0")
-        JS_COUNT=$(echo "$JS_FILES" | wc -l 2>/dev/null | tr -cd '0-9' || echo "0")
-        CSS_COUNT=$(echo "$CSS_FILES" | wc -l 2>/dev/null | tr -cd '0-9' || echo "0")
-        JSON_COUNT=$(echo "$JSON_FILES" | wc -l 2>/dev/null | tr -cd '0-9' || echo "0")
-        MD_COUNT=$(echo "$MD_FILES" | wc -l 2>/dev/null | tr -cd '0-9' || echo "0")
-        YML_COUNT=$(echo "$YML_FILES" | wc -l 2>/dev/null | tr -cd '0-9' || echo "0")
+        HTML_COUNT=0
+        JS_COUNT=0
+        CSS_COUNT=0
+        JSON_COUNT=0
+        MD_COUNT=0
+        YML_COUNT=0
+        
+        if [ -n "$HTML_FILES" ] && [ "$HTML_FILES" != "" ]; then
+          HTML_COUNT=$(echo "$HTML_FILES" | wc -l | tr -cd '0-9')
+        fi
+        
+        if [ -n "$JS_FILES" ] && [ "$JS_FILES" != "" ]; then
+          JS_COUNT=$(echo "$JS_FILES" | wc -l | tr -cd '0-9')
+        fi
+        
+        if [ -n "$CSS_FILES" ] && [ "$CSS_FILES" != "" ]; then
+          CSS_COUNT=$(echo "$CSS_FILES" | wc -l | tr -cd '0-9')
+        fi
+        
+        if [ -n "$JSON_FILES" ] && [ "$JSON_FILES" != "" ]; then
+          JSON_COUNT=$(echo "$JSON_FILES" | wc -l | tr -cd '0-9')
+        fi
+        
+        if [ -n "$MD_FILES" ] && [ "$MD_FILES" != "" ]; then
+          MD_COUNT=$(echo "$MD_FILES" | wc -l | tr -cd '0-9')
+        fi
+        
+        if [ -n "$YML_FILES" ] && [ "$YML_FILES" != "" ]; then
+          YML_COUNT=$(echo "$YML_FILES" | wc -l | tr -cd '0-9')
+        fi
         
         # Calcular linhas totais
         TOTAL_LINES=0
         
-        # Contar linhas HTML
-        if [ -n "$HTML_FILES" ]; then
-          for file in $(echo "$HTML_FILES"); do
-            if [ -f "$file" ]; then
-              lines=$(wc -l < "$file" 2>/dev/null | tr -cd '0-9' || echo "0")
-              TOTAL_LINES=$((TOTAL_LINES + lines))
-            fi
-          done
-        fi
+        # Função para contar linhas
+        contar_linhas() {
+          local files="$1"
+          local total=0
+          
+          if [ -n "$files" ] && [ "$files" != "" ]; then
+            while IFS= read -r file; do
+              if [ -f "$file" ]; then
+                lines=$(wc -l < "$file" 2>/dev/null | tr -cd '0-9')
+                lines=${lines:-0}
+                total=$((total + lines))
+              fi
+            done <<< "$files"
+          fi
+          
+          echo "$total"
+        }
         
-        # Contar linhas JavaScript
-        if [ -n "$JS_FILES" ]; then
-          for file in $(echo "$JS_FILES"); do
-            if [ -f "$file" ]; then
-              lines=$(wc -l < "$file" 2>/dev/null | tr -cd '0-9' || echo "0")
-              TOTAL_LINES=$((TOTAL_LINES + lines))
-            fi
-          done
-        fi
+        echo "📊 Contando linhas de HTML..."
+        HTML_LINES=$(contar_linhas "$HTML_FILES")
+        TOTAL_LINES=$((TOTAL_LINES + HTML_LINES))
         
-        # Contar linhas CSS
-        if [ -n "$CSS_FILES" ]; then
-          for file in $(echo "$CSS_FILES"); do
-            if [ -f "$file" ]; then
-              lines=$(wc -l < "$file" 2>/dev/null | tr -cd '0-9' || echo "0")
-              TOTAL_LINES=$((TOTAL_LINES + lines))
-            fi
-          done
-        fi
+        echo "📊 Contando linhas de JavaScript..."
+        JS_LINES=$(contar_linhas "$JS_FILES")
+        TOTAL_LINES=$((TOTAL_LINES + JS_LINES))
         
-        # Contar linhas JSON
-        if [ -n "$JSON_FILES" ]; then
-          for file in $(echo "$JSON_FILES"); do
-            if [ -f "$file" ]; then
-              lines=$(wc -l < "$file" 2>/dev/null | tr -cd '0-9' || echo "0")
-              TOTAL_LINES=$((TOTAL_LINES + lines))
-            fi
-          done
-        fi
+        echo "📊 Contando linhas de CSS..."
+        CSS_LINES=$(contar_linhas "$CSS_FILES")
+        TOTAL_LINES=$((TOTAL_LINES + CSS_LINES))
         
-        # Contar linhas Markdown
-        if [ -n "$MD_FILES" ]; then
-          for file in $(echo "$MD_FILES"); do
-            if [ -f "$file" ]; then
-              lines=$(wc -l < "$file" 2>/dev/null | tr -cd '0-9' || echo "0")
-              TOTAL_LINES=$((TOTAL_LINES + lines))
-            fi
-          done
-        fi
+        echo "📊 Contando linhas de JSON..."
+        JSON_LINES=$(contar_linhas "$JSON_FILES")
+        TOTAL_LINES=$((TOTAL_LINES + JSON_LINES))
         
-        # Contar linhas YAML
-        if [ -n "$YML_FILES" ]; then
-          for file in $(echo "$YML_FILES"); do
-            if [ -f "$file" ]; then
-              lines=$(wc -l < "$file" 2>/dev/null | tr -cd '0-9' || echo "0")
-              TOTAL_LINES=$((TOTAL_LINES + lines))
-            fi
-          done
-        fi
+        echo "📊 Contando linhas de Markdown..."
+        MD_LINES=$(contar_linhas "$MD_FILES")
+        TOTAL_LINES=$((TOTAL_LINES + MD_LINES))
+        
+        echo "📊 Contando linhas de YAML..."
+        YML_LINES=$(contar_linhas "$YML_FILES")
+        TOTAL_LINES=$((TOTAL_LINES + YML_LINES))
         
         TOTAL_FILES=$((HTML_COUNT + JS_COUNT + CSS_COUNT + JSON_COUNT + MD_COUNT + YML_COUNT))
         
@@ -140,8 +146,8 @@ jobs:
         echo "🔍 Contando funções JavaScript..."
         TOTAL_FUNCTIONS=0
         
-        if [ -n "$JS_FILES" ]; then
-          for file in $(echo "$JS_FILES"); do
+        if [ -n "$JS_FILES" ] && [ "$JS_FILES" != "" ]; then
+          while IFS= read -r file; do
             if [ -f "$file" ]; then
               # Contar diferentes tipos de funções
               func_count=0
@@ -165,64 +171,62 @@ jobs:
                 echo "  📁 $(basename "$file"): $file_functions funções"
               fi
             fi
-          done
+          done <<< "$JS_FILES"
         fi
         
         echo "✅ Total de funções: $TOTAL_FUNCTIONS"
         
-        # Criar arquivo HTML - VERSÃO SIMPLIFICADA E SEGURA
+        # Criar arquivo HTML - SEM HEREDOC
         echo 'Criando arquivo HTML...'
         
-        cat > index.html << 'HTML_EOF'
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📥 Código Fonte COMPLETO - Imóveis Maceió</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #0d1117; color: white; margin: 0; padding: 20px; }
-        .container { max-width: 1600px; margin: 0 auto; }
-        header { text-align: center; padding: 30px 0; border-bottom: 3px solid #2ea44f; margin-bottom: 30px; }
-        h1 { color: #2ea44f; font-size: 2.8em; }
-        h2 { color: #58a6ff; margin: 30px 0 20px; padding-bottom: 10px; border-bottom: 2px solid #30363d; }
-        h3 { color: #f0f6fc; margin: 20px 0 15px; }
-        .file-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin: 25px 0; }
-        .file-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; transition: transform 0.2s; }
-        .file-card:hover { transform: translateY(-5px); border-color: #58a6ff; }
-        .file-card h3 { margin-top: 0; color: #58a6ff; display: flex; align-items: center; gap: 10px; }
-        .js { color: #f1e05a; }
-        .css { color: #563d7c; }
-        .html { color: #e34c26; }
-        .json { color: #f1e05a; opacity: 0.9; }
-        .file-stats { display: flex; gap: 15px; margin-top: 12px; font-size: 0.9em; color: #8b949e; flex-wrap: wrap; }
-        .file-stats span { display: flex; align-items: center; gap: 5px; }
-        .functions-count { background: #1f6feb; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; }
-        .code-viewer { background: #0a0e14; padding: 25px; border-radius: 10px; margin: 25px 0; border: 1px solid #30363d; overflow-x: auto; }
-        pre { margin: 0; font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace; font-size: 0.95em; line-height: 1.5; tab-size: 4; white-space: pre-wrap; }
-        .line-number { color: #6a737d; margin-right: 20px; user-select: none; min-width: 40px; display: inline-block; text-align: right; }
-        a { color: #2ea44f; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        .complete-badge { background: linear-gradient(135deg, #238636, #2ea44f); color: white; padding: 6px 14px; border-radius: 6px; font-size: 0.85em; margin-left: 10px; font-weight: bold; }
-        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin: 25px 0; }
-        .summary-item { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; text-align: center; transition: transform 0.2s; }
-        .summary-item:hover { transform: translateY(-3px); border-color: #2ea44f; }
-        .summary-number { font-size: 2.5em; font-weight: bold; color: #2ea44f; margin: 15px 0; }
-        .exact-count { font-size: 3em; font-weight: bold; background: linear-gradient(135deg, #58a6ff, #1f6feb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 20px 0; }
-        .file-size-badge { background: #30363d; color: #8b949e; padding: 3px 8px; border-radius: 4px; font-size: 0.8em; margin-left: 10px; }
-        @media (max-width: 768px) { .file-list { grid-template-columns: 1fr; } .summary-grid { grid-template-columns: repeat(2, 1fr); } }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>📥 Código Fonte COMPLETO <span class="complete-badge">SEM LIMITAÇÕES</span></h1>
-            <p>Imóveis Maceió - Extração COMPLETA de TODAS as linhas</p>
-            <p><strong>Gerado em:</strong> 
-HTML_EOF
+        # Cabeçalho HTML
+        echo '<!DOCTYPE html>' > index.html
+        echo '<html lang="pt-BR">' >> index.html
+        echo '<head>' >> index.html
+        echo '<meta charset="UTF-8">' >> index.html
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
+        echo '<title>📥 Código Fonte COMPLETO - Imóveis Maceió</title>' >> index.html
+        echo '<style>' >> index.html
+        echo 'body { font-family: Arial, sans-serif; background: #0d1117; color: white; margin: 0; padding: 20px; }' >> index.html
+        echo '.container { max-width: 1600px; margin: 0 auto; }' >> index.html
+        echo 'header { text-align: center; padding: 30px 0; border-bottom: 3px solid #2ea44f; margin-bottom: 30px; }' >> index.html
+        echo 'h1 { color: #2ea44f; font-size: 2.8em; }' >> index.html
+        echo 'h2 { color: #58a6ff; margin: 30px 0 20px; padding-bottom: 10px; border-bottom: 2px solid #30363d; }' >> index.html
+        echo 'h3 { color: #f0f6fc; margin: 20px 0 15px; }' >> index.html
+        echo '.file-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin: 25px 0; }' >> index.html
+        echo '.file-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; transition: transform 0.2s; }' >> index.html
+        echo '.file-card:hover { transform: translateY(-5px); border-color: #58a6ff; }' >> index.html
+        echo '.file-card h3 { margin-top: 0; color: #58a6ff; display: flex; align-items: center; gap: 10px; }' >> index.html
+        echo '.js { color: #f1e05a; }' >> index.html
+        echo '.css { color: #563d7c; }' >> index.html
+        echo '.html { color: #e34c26; }' >> index.html
+        echo '.json { color: #f1e05a; opacity: 0.9; }' >> index.html
+        echo '.file-stats { display: flex; gap: 15px; margin-top: 12px; font-size: 0.9em; color: #8b949e; flex-wrap: wrap; }' >> index.html
+        echo '.file-stats span { display: flex; align-items: center; gap: 5px; }' >> index.html
+        echo '.functions-count { background: #1f6feb; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; }' >> index.html
+        echo '.code-viewer { background: #0a0e14; padding: 25px; border-radius: 10px; margin: 25px 0; border: 1px solid #30363d; overflow-x: auto; }' >> index.html
+        echo 'pre { margin: 0; font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace; font-size: 0.95em; line-height: 1.5; tab-size: 4; white-space: pre-wrap; }' >> index.html
+        echo '.line-number { color: #6a737d; margin-right: 20px; user-select: none; min-width: 40px; display: inline-block; text-align: right; }' >> index.html
+        echo 'a { color: #2ea44f; text-decoration: none; }' >> index.html
+        echo 'a:hover { text-decoration: underline; }' >> index.html
+        echo '.complete-badge { background: linear-gradient(135deg, #238636, #2ea44f); color: white; padding: 6px 14px; border-radius: 6px; font-size: 0.85em; margin-left: 10px; font-weight: bold; }' >> index.html
+        echo '.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin: 25px 0; }' >> index.html
+        echo '.summary-item { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; text-align: center; transition: transform 0.2s; }' >> index.html
+        echo '.summary-item:hover { transform: translateY(-3px); border-color: #2ea44f; }' >> index.html
+        echo '.summary-number { font-size: 2.5em; font-weight: bold; color: #2ea44f; margin: 15px 0; }' >> index.html
+        echo '.exact-count { font-size: 3em; font-weight: bold; background: linear-gradient(135deg, #58a6ff, #1f6feb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 20px 0; }' >> index.html
+        echo '.file-size-badge { background: #30363d; color: #8b949e; padding: 3px 8px; border-radius: 4px; font-size: 0.8em; margin-left: 10px; }' >> index.html
+        echo '@media (max-width: 768px) { .file-list { grid-template-columns: 1fr; } .summary-grid { grid-template-columns: repeat(2, 1fr); } }' >> index.html
+        echo '</style>' >> index.html
+        echo '</head>' >> index.html
+        echo '<body>' >> index.html
         
-        # Adicionar data
-        echo "$DATE_NOW</p>" >> index.html
+        # Conteúdo principal
+        echo '<div class="container">' >> index.html
+        echo '<header>' >> index.html
+        echo '<h1>📥 Código Fonte COMPLETO <span class="complete-badge">SEM LIMITAÇÕES</span></h1>' >> index.html
+        echo "<p>Imóveis Maceió - Extração COMPLETA de TODAS as $TOTAL_LINES linhas</p>" >> index.html
+        echo "<p><strong>Gerado em:</strong> $DATE_NOW</p>" >> index.html
         echo '</header>' >> index.html
         
         # RESUMO
@@ -285,13 +289,15 @@ HTML_EOF
         echo '<div class="file-list">' >> index.html
         
         # Processar arquivos HTML
-        if [ -n "$HTML_FILES" ]; then
-          for file in $(echo "$HTML_FILES"); do
+        if [ -n "$HTML_FILES" ] && [ "$HTML_FILES" != "" ]; then
+          while IFS= read -r file; do
             if [ -f "$file" ]; then
               filename=$(basename "$file")
               relative_path=${file#fonte-completo/}
-              lines=$(wc -l < "$file" 2>/dev/null | tr -cd '0-9' || echo "0")
-              size=$(stat -c%s "$file" 2>/dev/null | tr -cd '0-9' || echo "0")
+              lines=$(wc -l < "$file" 2>/dev/null | tr -cd '0-9')
+              lines=${lines:-0}
+              size=$(stat -c%s "$file" 2>/dev/null | tr -cd '0-9' || wc -c < "$file" 2>/dev/null | tr -cd '0-9')
+              size=${size:-0}
               size_kb=$(( (size + 1023) / 1024 ))
               file_id=$(echo "$relative_path" | tr '/.' '_' | tr -cd '[:alnum:]_')
               
@@ -307,17 +313,19 @@ HTML_EOF
               echo "<p><a href=\"#html_${file_id}\">📄 Ver código COMPLETO →</a></p>" >> index.html
               echo '</div>' >> index.html
             fi
-          done
+          done <<< "$HTML_FILES"
         fi
         
         # Processar arquivos JS
-        if [ -n "$JS_FILES" ]; then
-          for file in $(echo "$JS_FILES"); do
+        if [ -n "$JS_FILES" ] && [ "$JS_FILES" != "" ]; then
+          while IFS= read -r file; do
             if [ -f "$file" ]; then
               filename=$(basename "$file")
               relative_path=${file#fonte-completo/}
-              lines=$(wc -l < "$file" 2>/dev/null | tr -cd '0-9' || echo "0")
-              size=$(stat -c%s "$file" 2>/dev/null | tr -cd '0-9' || echo "0")
+              lines=$(wc -l < "$file" 2>/dev/null | tr -cd '0-9')
+              lines=${lines:-0}
+              size=$(stat -c%s "$file" 2>/dev/null | tr -cd '0-9' || wc -c < "$file" 2>/dev/null | tr -cd '0-9')
+              size=${size:-0}
               size_kb=$(( (size + 1023) / 1024 ))
               file_id=$(echo "$relative_path" | tr '/.' '_' | tr -cd '[:alnum:]_')
               
@@ -326,6 +334,9 @@ HTML_EOF
               count1=$(grep -c '^[[:space:]]*function[[:space:]]' "$file" 2>/dev/null || echo "0")
               count2=$(grep -c 'const\|let\|var.*=.*=>' "$file" 2>/dev/null || echo "0")
               count3=$(grep -c '^[[:space:]]*class[[:space:]]' "$file" 2>/dev/null || echo "0")
+              count1=$(echo "$count1" | tr -cd '0-9')
+              count2=$(echo "$count2" | tr -cd '0-9')
+              count3=$(echo "$count3" | tr -cd '0-9')
               file_functions=$((count1 + count2 + count3))
               
               echo '<div class="file-card">' >> index.html
@@ -350,17 +361,19 @@ HTML_EOF
               echo "<p><a href=\"#js_${file_id}\">📜 Ver código COMPLETO →</a></p>" >> index.html
               echo '</div>' >> index.html
             fi
-          done
+          done <<< "$JS_FILES"
         fi
         
         # Processar arquivos CSS
-        if [ -n "$CSS_FILES" ]; then
-          for file in $(echo "$CSS_FILES"); do
+        if [ -n "$CSS_FILES" ] && [ "$CSS_FILES" != "" ]; then
+          while IFS= read -r file; do
             if [ -f "$file" ]; then
               filename=$(basename "$file")
               relative_path=${file#fonte-completo/}
-              lines=$(wc -l < "$file" 2>/dev/null | tr -cd '0-9' || echo "0")
-              size=$(stat -c%s "$file" 2>/dev/null | tr -cd '0-9' || echo "0")
+              lines=$(wc -l < "$file" 2>/dev/null | tr -cd '0-9')
+              lines=${lines:-0}
+              size=$(stat -c%s "$file" 2>/dev/null | tr -cd '0-9' || wc -c < "$file" 2>/dev/null | tr -cd '0-9')
+              size=${size:-0}
               size_kb=$(( (size + 1023) / 1024 ))
               file_id=$(echo "$relative_path" | tr '/.' '_' | tr -cd '[:alnum:]_')
               
@@ -376,7 +389,7 @@ HTML_EOF
               echo "<p><a href=\"#css_${file_id}\">🎨 Ver código COMPLETO →</a></p>" >> index.html
               echo '</div>' >> index.html
             fi
-          done
+          done <<< "$CSS_FILES"
         fi
         
         echo '</div>' >> index.html
@@ -386,55 +399,58 @@ HTML_EOF
         echo '<p style="color: #8b949e; margin-bottom: 25px;">Cada arquivo exibe TODAS as suas linhas sem restrições de visualização.</p>' >> index.html
         
         # Processar todos os arquivos
-        ALL_FILES=$(find fonte-completo -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" -o -name "*.md" -o -name "*.yml" -o -name "*.yaml" \) 2>/dev/null | sort)
+        ALL_FILES=$(find fonte-completo -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" -o -name "*.md" -o -name "*.yml" -o -name "*.yaml" \) 2>/dev/null | sort || echo "")
         
         FILE_COUNTER=0
-        for file in $(echo "$ALL_FILES"); do
-          if [ ! -f "$file" ]; then
-            continue
-          fi
-          
-          filename=$(basename "$file")
-          relative_path=${file#fonte-completo/}
-          file_id=$(echo "$relative_path" | tr '/.' '_' | tr -cd '[:alnum:]_')
-          extension="${filename##*.}"
-          lines=$(wc -l < "$file" 2>/dev/null | tr -cd '0-9' || echo "0")
-          FILE_COUNTER=$((FILE_COUNTER + 1))
-          
-          # Determinar ícone e classe
-          case $extension in
-            "html") icon="🌐"; class="html";;
-            "js") icon="📜"; class="js";;
-            "css") icon="🎨"; class="css";;
-            "json") icon="📋"; class="json";;
-            "md") icon="📝"; class="md";;
-            "yml"|"yaml") icon="⚙️"; class="yml";;
-            *) icon="📄"; class="";;
-          esac
-          
-          echo "<div class=\"code-viewer\" id=\"${class}_${file_id}\">" >> index.html
-          echo "<h3>$icon $relative_path <span class=\"complete-badge\">$lines linhas</span></h3>" >> index.html
-          echo "<div style=\"margin: 10px 0; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 5px; font-size: 0.9em;\">" >> index.html
-          echo "<strong>📊 Estatísticas:</strong> $lines linhas | Arquivo #$FILE_COUNTER de $TOTAL_FILES | Tipo: $extension" >> index.html
-          echo "</div>" >> index.html
-          echo '<pre>' >> index.html
-          
-          # Mostrar todas as linhas
-          line_num=1
-          while IFS= read -r line || [ -n "$line" ]; do
-            # Escapar HTML
-            line_escaped=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g')
+        if [ -n "$ALL_FILES" ] && [ "$ALL_FILES" != "" ]; then
+          while IFS= read -r file; do
+            if [ ! -f "$file" ]; then
+              continue
+            fi
             
-            echo "<span class=\"line-number\">$line_num</span>$line_escaped<br/>" >> index.html
-            line_num=$((line_num + 1))
-          done < "$file"
-          
-          echo '</pre>' >> index.html
-          echo "<div style=\"margin-top: 15px; padding: 10px; background: rgba(46, 164, 79, 0.1); border-radius: 5px; text-align: center;\">" >> index.html
-          echo "<strong>✅ EXTRADO COMPLETAMENTE:</strong> Todas as $lines linhas foram carregadas." >> index.html
-          echo '</div>' >> index.html
-          echo '</div>' >> index.html
-        done
+            filename=$(basename "$file")
+            relative_path=${file#fonte-completo/}
+            file_id=$(echo "$relative_path" | tr '/.' '_' | tr -cd '[:alnum:]_')
+            extension="${filename##*.}"
+            lines=$(wc -l < "$file" 2>/dev/null | tr -cd '0-9')
+            lines=${lines:-0}
+            FILE_COUNTER=$((FILE_COUNTER + 1))
+            
+            # Determinar ícone e classe
+            case $extension in
+              "html") icon="🌐"; class="html";;
+              "js") icon="📜"; class="js";;
+              "css") icon="🎨"; class="css";;
+              "json") icon="📋"; class="json";;
+              "md") icon="📝"; class="md";;
+              "yml"|"yaml") icon="⚙️"; class="yml";;
+              *) icon="📄"; class="";;
+            esac
+            
+            echo "<div class=\"code-viewer\" id=\"${class}_${file_id}\">" >> index.html
+            echo "<h3>$icon $relative_path <span class=\"complete-badge\">$lines linhas</span></h3>" >> index.html
+            echo "<div style=\"margin: 10px 0; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 5px; font-size: 0.9em;\">" >> index.html
+            echo "<strong>📊 Estatísticas:</strong> $lines linhas | Arquivo #$FILE_COUNTER de $TOTAL_FILES | Tipo: $extension" >> index.html
+            echo "</div>" >> index.html
+            echo '<pre>' >> index.html
+            
+            # Mostrar todas as linhas
+            line_num=1
+            while IFS= read -r line || [ -n "$line" ]; do
+              # Escapar HTML
+              line_escaped=$(echo "$line" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g')
+              
+              echo "<span class=\"line-number\">$line_num</span>$line_escaped<br/>" >> index.html
+              line_num=$((line_num + 1))
+            done < "$file"
+            
+            echo '</pre>' >> index.html
+            echo "<div style=\"margin-top: 15px; padding: 10px; background: rgba(46, 164, 79, 0.1); border-radius: 5px; text-align: center;\">" >> index.html
+            echo "<strong>✅ EXTRADO COMPLETAMENTE:</strong> Todas as $lines linhas foram carregadas." >> index.html
+            echo '</div>' >> index.html
+            echo '</div>' >> index.html
+          done <<< "$ALL_FILES"
+        fi
         
         # FOOTER
         echo '<footer style="text-align: center; margin-top: 50px; padding-top: 30px; border-top: 1px solid #30363d; color: #8b949e; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 30px;">' >> index.html
@@ -512,5 +528,5 @@ HTML_EOF
         echo "📈 ESTATÍSTICAS:"
         echo "• 5993 linhas de código"
         echo "• 17 arquivos no total"
-        echo "• $TOTAL_FUNCTIONS funções JavaScript"
+        echo "• Funções JavaScript contadas"
         echo "• Extração completa e sem limitações"
