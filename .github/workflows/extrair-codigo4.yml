@@ -26,7 +26,7 @@ jobs:
     
     - name: 📝 Criar relatório completo
       run: |
-        echo "📊 Iniciando extração com estatísticas detalhadas..."
+        echo "🌳 Criando relatório com estrutura hierárquica..."
         
         # Data atual
         DATE_NOW=$(date '+%d/%m/%Y %H:%M:%S')
@@ -37,11 +37,17 @@ jobs:
         echo '<head>' >> index.html
         echo '<meta charset="UTF-8">' >> index.html
         echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
-        echo '<title>📊 Código Fonte COMPLETO com Estatísticas</title>' >> index.html
+        echo '<title>🌳 Código Fonte COMPLETO com Estrutura</title>' >> index.html
         echo '<style>' >> index.html
         echo 'body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #0d1117; color: white; }' >> index.html
         echo '.container { max-width: 1400px; margin: 0 auto; }' >> index.html
         echo 'header { background: #161b22; padding: 30px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #30363d; text-align: center; }' >> index.html
+        echo '.structure-section { background: #161b22; padding: 25px; border-radius: 10px; margin: 25px 0; border: 1px solid #30363d; }' >> index.html
+        echo '.tree { font-family: monospace; margin: 20px 0; line-height: 1.6; }' >> index.html
+        echo '.tree-item { margin: 5px 0; }' >> index.html
+        echo '.tree-folder { color: #58a6ff; font-weight: bold; }' >> index.html
+        echo '.tree-file { color: #c9d1d9; }' >> index.html
+        echo '.tree-icon { margin-right: 8px; }' >> index.html
         echo '.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 30px 0; }' >> index.html
         echo '.stat-card { background: #161b22; padding: 25px; border-radius: 10px; border: 1px solid #30363d; text-align: center; }' >> index.html
         echo '.stat-number { font-size: 2.5em; font-weight: bold; color: #58a6ff; margin: 10px 0; }' >> index.html
@@ -56,6 +62,7 @@ jobs:
         echo '.css-badge { background: #563d7c; }' >> index.html
         echo '.html-badge { background: #e34c26; }' >> index.html
         echo '.json-badge { background: #f1e05a; color: #000; }' >> index.html
+        echo '.md-badge { background: #0366d6; }' >> index.html
         echo '.code-section { background: #0a0e14; padding: 25px; border-radius: 10px; margin: 25px 0; border: 1px solid #30363d; }' >> index.html
         echo 'pre { margin: 0; font-family: monospace; overflow-x: auto; }' >> index.html
         echo '.line { margin: 2px 0; }' >> index.html
@@ -70,33 +77,85 @@ jobs:
         
         # Cabeçalho
         echo '<header>' >> index.html
-        echo '<h1><i class="fas fa-file-code"></i> Código Fonte COMPLETO</h1>' >> index.html
-        echo '<p>Imóveis Maceió - Relatório Analítico com Estatísticas Detalhadas</p>' >> index.html
+        echo '<h1><i class="fas fa-tree"></i> Código Fonte COMPLETO com Estrutura</h1>' >> index.html
+        echo '<p>Imóveis Maceió - Relatório Analítico Hierárquico</p>' >> index.html
         echo "<p>Gerado em: $DATE_NOW</p>" >> index.html
         echo '</header>' >> index.html
         
-        echo "🔍 Calculando estatísticas detalhadas..."
+        echo "🌳 Gerando estrutura hierárquica..."
         
-        # Procurar arquivos
+        # Função para gerar árvore
+        generate_tree() {
+          local dir="$1"
+          local prefix="$2"
+          local items=$(find "$dir" -maxdepth 1 -name "*" | sort)
+          
+          for item in $items; do
+            if [ "$item" != "$dir" ]; then
+              local name=$(basename "$item")
+              
+              if [ -d "$item" ]; then
+                echo "<div class='tree-item'>${prefix}<span class='tree-folder'><i class='fas fa-folder tree-icon'></i>$name/</span></div>"
+                generate_tree "$item" "${prefix}    "
+              else
+                # Determinar ícone baseado na extensão
+                local icon="<i class='fas fa-file tree-icon'></i>"
+                if [[ "$name" == *.html ]]; then
+                  icon="<i class='fas fa-globe tree-icon'></i>"
+                elif [[ "$name" == *.js ]]; then
+                  icon="<i class='fas fa-code tree-icon'></i>"
+                elif [[ "$name" == *.css ]]; then
+                  icon="<i class='fas fa-paint-brush tree-icon'></i>"
+                elif [[ "$name" == *.json ]]; then
+                  icon="<i class='fas fa-cog tree-icon'></i>"
+                elif [[ "$name" == *.md ]]; then
+                  icon="<i class='fas fa-book tree-icon'></i>"
+                elif [[ "$name" == *.yml ]] || [[ "$name" == *.yaml ]]; then
+                  icon="<i class='fas fa-gear tree-icon'></i>"
+                fi
+                
+                echo "<div class='tree-item'>${prefix}<span class='tree-file'>${icon}$name</span></div>"
+              fi
+            fi
+          done
+        }
+        
+        # Seção de estrutura
+        echo '<div class="structure-section">' >> index.html
+        echo '<h2><i class="fas fa-sitemap"></i> 🌳 Estrutura do Projeto</h2>' >> index.html
+        echo '<div class="tree">' >> index.html
+        
+        # Gerar árvore a partir do diretório fonte-completo
+        echo "<div class='tree-item'><span class='tree-folder'><i class='fas fa-folder-open tree-icon'></i>fonte-completo/</span></div>" >> index.html
+        generate_tree "fonte-completo" "    " >> index.html
+        
+        echo '</div>' >> index.html
+        echo '</div>' >> index.html
+        
+        # Procurar arquivos para estatísticas
         html_files=$(find fonte-completo -name "*.html" -type f)
         js_files=$(find fonte-completo -name "*.js" -type f)
         css_files=$(find fonte-completo -name "*.css" -type f)
         json_files=$(find fonte-completo -name "*.json" -type f)
+        md_files=$(find fonte-completo -name "*.md" -type f)
+        yml_files=$(find fonte-completo -name "*.yml" -o -name "*.yaml" -type f)
         
         # Contagens
         html_count=$(echo "$html_files" | wc -l)
         js_count=$(echo "$js_files" | wc -l)
         css_count=$(echo "$css_files" | wc -l)
         json_count=$(echo "$json_files" | wc -l)
+        md_count=$(echo "$md_files" | wc -l)
+        yml_count=$(echo "$yml_files" | wc -l)
         
-        total_files=$((html_count + js_count + css_count + json_count))
+        total_files=$((html_count + js_count + css_count + json_count + md_count + yml_count))
         
         # Estatísticas gerais
         echo '<div class="stats-grid">' >> index.html
         
         # Total de linhas
         total_lines=0
-        for file in $html_files $js_files $css_files $json_files; do
+        for file in $html_files $js_files $css_files $json_files $md_files $yml_files; do
           if [ -f "$file" ]; then
             lines=$(wc -l < "$file")
             total_lines=$((total_lines + lines))
@@ -120,7 +179,6 @@ jobs:
         total_js_functions=0
         for file in $js_files; do
           if [ -f "$file" ]; then
-            # Contar funções
             functions=$(grep -c "function\|=>\|class " "$file" 2>/dev/null || echo "0")
             total_js_functions=$((total_js_functions + functions))
           fi
@@ -132,30 +190,22 @@ jobs:
         echo '<p>Funções JavaScript</p>' >> index.html
         echo '</div>' >> index.html
         
-        # Tamanho total
-        total_size=0
-        for file in $html_files $js_files $css_files $json_files; do
-          if [ -f "$file" ]; then
-            size=$(wc -c < "$file")
-            total_size=$((total_size + size))
-          fi
-        done
-        total_size_kb=$((total_size / 1024))
-        
+        # Total de pastas
+        total_folders=$(find fonte-completo -type d | wc -l)
         echo '<div class="stat-card">' >> index.html
-        echo '<i class="fas fa-weight-hanging fa-2x"></i>' >> index.html
-        echo '<div class="stat-number">'$total_size_kb'KB</div>' >> index.html
-        echo '<p>Tamanho Total</p>' >> index.html
+        echo '<i class="fas fa-folder fa-2x"></i>' >> index.html
+        echo '<div class="stat-number">'$total_folders'</div>' >> index.html
+        echo '<p>Pastas</p>' >> index.html
         echo '</div>' >> index.html
         
         echo '</div>' >> index.html
         
         # Lista detalhada de arquivos
-        echo '<h2><i class="fas fa-folder-open"></i> Lista de Arquivos Extraídos (COMPLETO)</h2>' >> index.html
+        echo '<h2><i class="fas fa-folder-open"></i> 📁 Lista de Arquivos Extraídos (COMPLETO)</h2>' >> index.html
         echo '<div class="files-grid">' >> index.html
         
         # Processar cada arquivo individualmente
-        all_files="$html_files $js_files $css_files $json_files"
+        all_files="$html_files $js_files $css_files $json_files $md_files $yml_files"
         
         for file_path in $all_files; do
           if [ -f "$file_path" ]; then
@@ -197,6 +247,16 @@ jobs:
               icon="<i class='fas fa-cog file-icon'></i>"
               type="JSON"
               badge_class="json-badge"
+              description="(Configuração)"
+            elif [[ "$filename" == *.md ]]; then
+              icon="<i class='fas fa-book file-icon'></i>"
+              type="Markdown"
+              badge_class="md-badge"
+              description="(Documentação)"
+            elif [[ "$filename" == *.yml ]] || [[ "$filename" == *.yaml ]]; then
+              icon="<i class='fas fa-gear file-icon'></i>"
+              type="YAML"
+              badge_class=""
               description="(Configuração)"
             else
               icon="<i class='fas fa-file file-icon'></i>"
@@ -252,7 +312,7 @@ jobs:
         echo '</div>' >> index.html
         
         # Código completo dos arquivos
-        echo '<h2><i class="fas fa-code"></i> Código Fonte Completo</h2>' >> index.html
+        echo '<h2><i class="fas fa-code"></i> 📜 Código Fonte Completo</h2>' >> index.html
         echo '<p>Todas as linhas de todos os arquivos:</p>' >> index.html
         
         for file_path in $all_files; do
@@ -271,6 +331,10 @@ jobs:
               file_type="CSS"
             elif [[ "$filename" == *.json ]]; then
               file_type="JSON"
+            elif [[ "$filename" == *.md ]]; then
+              file_type="Markdown"
+            elif [[ "$filename" == *.yml ]] || [[ "$filename" == *.yaml ]]; then
+              file_type="YAML"
             else
               file_type="Arquivo"
             fi
@@ -299,15 +363,15 @@ jobs:
         done
         
         # Resumo final
-        echo '<div class="code-section" style="text-align: center; background: #161b22;">' >> index.html
-        echo '<h3><i class="fas fa-chart-bar"></i> Resumo da Extração</h3>' >> index.html
+        echo '<div class="structure-section" style="text-align: center;">' >> index.html
+        echo '<h3><i class="fas fa-chart-bar"></i> 📊 Resumo da Extração</h3>' >> index.html
         echo '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0;">' >> index.html
         
         echo '<div>' >> index.html
         echo '<h4>📊 Totais</h4>' >> index.html
         echo "<p>Linhas: $total_lines</p>" >> index.html
         echo "<p>Arquivos: $total_files</p>" >> index.html
-        echo "<p>Tamanho: ${total_size_kb} KB</p>" >> index.html
+        echo "<p>Pastas: $total_folders</p>" >> index.html
         echo '</div>' >> index.html
         
         echo '<div>' >> index.html
@@ -326,7 +390,27 @@ jobs:
         echo "<p>Arquivos: $css_count</p>" >> index.html
         echo '</div>' >> index.html
         
+        echo '<div>' >> index.html
+        echo '<h4>📋 Outros</h4>' >> index.html
+        echo "<p>JSON: $json_count</p>" >> index.html
+        echo "<p>Markdown: $md_count</p>" >> index.html
+        echo "<p>YAML: $yml_count</p>" >> index.html
         echo '</div>' >> index.html
+        
+        echo '</div>' >> index.html
+        
+        # Mostrar estrutura textual também
+        echo '<h4><i class="fas fa-diagram-project"></i> Estrutura Textual</h4>' >> index.html
+        echo '<div style="background: #0a0e14; padding: 15px; border-radius: 5px; font-family: monospace; text-align: left; margin: 20px 0;">' >> index.html
+        echo '<pre style="margin: 0;">' >> index.html
+        find fonte-completo -type f -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" -o -name "*.md" -o -name "*.yml" -o -name "*.yaml" | sed 's|fonte-completo/||' | sort | while read file; do
+          depth=$(echo "$file" | grep -o "/" | wc -l)
+          spaces=$(printf "%${depth}s" "")
+          echo "$spaces📄 $file" >> index.html
+        done
+        echo '</pre>' >> index.html
+        echo '</div>' >> index.html
+        
         echo "<p><strong>Gerado em:</strong> $DATE_NOW</p>" >> index.html
         echo '<p>' >> index.html
         echo '<a href="https://rclessa25-hub.github.io/imoveis-maceio/"><i class="fas fa-external-link-alt"></i> Site Principal</a>' >> index.html
@@ -339,12 +423,13 @@ jobs:
         echo '</body>' >> index.html
         echo '</html>' >> index.html
         
-        echo "✅ Relatório completo criado!"
+        echo "✅ Relatório com estrutura hierárquica criado!"
+        echo "🌳 Estrutura gerada automaticamente"
         echo "📊 Estatísticas:"
         echo "  • Linhas totais: $total_lines"
         echo "  • Arquivos: $total_files"
+        echo "  • Pastas: $total_folders"
         echo "  • Funções JS: $total_js_functions"
-        echo "  • Tamanho: ${total_size_kb}KB"
     
     - name: 📦 Upload para GitHub Pages
       uses: actions/upload-pages-artifact@v3
@@ -357,23 +442,23 @@ jobs:
     - name: 🎉 Mostrar resultado final
       run: |
         echo ""
-        echo "🎉 RELATÓRIO ANALÍTICO COMPLETO!"
-        echo "================================="
+        echo "🎉 RELATÓRIO HIERÁRQUICO COMPLETO!"
+        echo "=================================="
         echo ""
-        echo "✅ TODAS AS ESTATÍSTICAS DETALHADAS"
-        echo "✅ FUNÇÕES JAVASCRIPT CONTADAS"
-        echo "✅ LINHAS POR ARQUIVO"
-        echo "✅ TAMANHOS CALCULADOS"
+        echo "✅ ESTRUTURA COMPLETA DO PROJETO"
+        echo "✅ ÁRVORE DE DIRETÓRIOS DINÂMICA"
+        echo "✅ ESTATÍSTICAS DETALHADAS"
+        echo "✅ CÓDIGO COMPLETO COM NAVEGAÇÃO"
         echo ""
         echo "🌐 ACESSE EM:"
         echo "https://rclessa25-hub.github.io/reports-wlimoveis/"
         echo ""
-        echo "📊 O RELATÓRIO INCLUI AGORA:"
-        echo "• 📁 Lista completa de arquivos"
-        echo "• 📏 Linhas por arquivo"
-        echo "• ⚡ Funções JavaScript por arquivo"
-        echo "• 📦 Tamanho de cada arquivo"
-        echo "• 📍 Localização exata"
-        echo "• 📊 Estatísticas gerais"
+        echo "📋 O RELATÓRIO INCLUI AGORA:"
+        echo "• 🌳 Estrutura hierárquica completa"
+        echo "• 📁 Árvore de diretórios visual"
+        echo "• 📊 Estatísticas por tipo de arquivo"
+        echo "• 📏 Linhas e funções por arquivo"
+        echo "• 📍 Localização exata de cada arquivo"
+        echo "• 📜 Código fonte completo de tudo"
         echo ""
-        echo "✅ VERSÃO FINAL CONCLUÍDA COM SUCESSO!"
+        echo "✅ VERSÃO FINAL COM ESTRUTURA CONCLUÍDA!"
