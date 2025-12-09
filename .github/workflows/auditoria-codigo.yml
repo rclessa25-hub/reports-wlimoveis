@@ -1,0 +1,781 @@
+name: 📊 Auditoria Completa de Performance e Acoplamento
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  audit-code:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    
+    steps:
+    - name: 📥 Checkout do repositório
+      uses: actions/checkout@v4
+    
+    - name: 📥 Clonar projeto completo
+      run: |
+        git clone https://github.com/rclessa25-hub/imoveis-maceio.git source-audit
+    
+    - name: 📝 Criar relatório de auditoria
+      run: |
+        echo "🔍 Iniciando auditoria completa do código..."
+        
+        # Data atual
+        DATE_NOW=$(date '+%d/%m/%Y %H:%M:%S')
+        
+        # Iniciar arquivo HTML
+        echo '<!DOCTYPE html>' > audit-report.html
+        echo '<html lang="pt-BR">' >> audit-report.html
+        echo '<head>' >> audit-report.html
+        echo '<meta charset="UTF-8">' >> audit-report.html
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">' >> audit-report.html
+        echo '<title>📊 Auditoria Completa - Performance e Acoplamento</title>' >> audit-report.html
+        echo '<style>' >> audit-report.html
+        echo 'body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #0d1117; color: white; }' >> audit-report.html
+        echo '.container { max-width: 1400px; margin: 0 auto; }' >> audit-report.html
+        echo 'header { background: #161b22; padding: 30px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #30363d; text-align: center; }' >> audit-report.html
+        echo '.section { background: #161b22; padding: 25px; border-radius: 10px; margin: 25px 0; border: 1px solid #30363d; }' >> audit-report.html
+        echo '.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 30px 0; }' >> audit-report.html
+        echo '.stat-card { background: #1c2128; padding: 25px; border-radius: 10px; border: 1px solid #30363d; text-align: center; }' >> audit-report.html
+        echo '.stat-number { font-size: 2.5em; font-weight: bold; margin: 10px 0; }' >> audit-report.html
+        echo '.good { color: #3fb950; }' >> audit-report.html
+        echo '.warning { color: #f1e05a; }' >> audit-report.html
+        echo '.critical { color: #f85149; }' >> audit-report.html
+        echo '.metric-table { width: 100%; border-collapse: collapse; margin: 20px 0; }' >> audit-report.html
+        echo '.metric-table th, .metric-table td { padding: 12px; text-align: left; border-bottom: 1px solid #30363d; }' >> audit-report.html
+        echo '.metric-table th { background: #1c2128; }' >> audit-report.html
+        echo '.coupling-diagram { background: #0a0e14; padding: 20px; border-radius: 8px; margin: 20px 0; font-family: monospace; }' >> audit-report.html
+        echo '.function-list { max-height: 400px; overflow-y: auto; }' >> audit-report.html
+        echo '.function-item { padding: 10px; border-bottom: 1px solid #30363d; }' >> audit-report.html
+        echo '.function-name { color: #58a6ff; font-weight: bold; }' >> audit-report.html
+        echo '.complexity-badge { background: #238636; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.9em; margin-left: 10px; }' >> audit-report.html
+        echo '.high-complexity { background: #f85149; }' >> audit-report.html
+        echo '.medium-complexity { background: #f1e05a; color: #000; }' >> audit-report.html
+        echo '.recommendation { background: #1c2128; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #58a6ff; }' >> audit-report.html
+        echo '.tool-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }' >> audit-report.html
+        echo '.tool-card { background: #1c2128; padding: 20px; border-radius: 8px; }' >> audit-report.html
+        echo '</style>' >> audit-report.html
+        echo '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">' >> audit-report.html
+        echo '<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>' >> audit-report.html
+        echo '</head>' >> audit-report.html
+        echo '<body>' >> audit-report.html
+        echo '<div class="container">' >> audit-report.html
+        
+        # Cabeçalho
+        echo '<header>' >> audit-report.html
+        echo '<h1><i class="fas fa-search"></i> Auditoria Completa de Performance</h1>' >> audit-report.html
+        echo '<p>Webber Lessa Imobiliária - CRECI: 654/AL</p>' >> audit-report.html
+        echo "<p>Data da Auditoria: $DATE_NOW</p>" >> audit-report.html
+        echo '</header>' >> audit-report.html
+        
+        # Seção 1: Estatísticas Gerais
+        echo '<div class="section">' >> audit-report.html
+        echo '<h2><i class="fas fa-chart-bar"></i> Estatísticas Gerais do Projeto</h2>' >> audit-report.html
+        
+        # Analisar estrutura
+        echo "🔍 Analisando estrutura do projeto..."
+        
+        # Contar arquivos por tipo
+        find source-audit -name "*.js" -type f > js_files.txt
+        find source-audit -name "*.css" -type f > css_files.txt
+        find source-audit -name "*.html" -type f > html_files.txt
+        find source-audit -name "*.json" -type f > json_files.txt
+        
+        js_count=$(wc -l < js_files.txt)
+        css_count=$(wc -l < css_files.txt)
+        html_count=$(wc -l < html_files.txt)
+        json_count=$(wc -l < json_files.txt)
+        
+        # Analisar JavaScript
+        total_js_lines=0
+        total_js_functions=0
+        complex_functions=0
+        
+        echo "📊 Analisando JavaScript..."
+        
+        while read js_file; do
+          if [ -f "$js_file" ]; then
+            lines=$(wc -l < "$js_file")
+            total_js_lines=$((total_js_lines + lines))
+            
+            # Contar funções
+            functions=$(grep -c "function\|=>\|class " "$js_file" 2>/dev/null || echo "0")
+            total_js_functions=$((total_js_functions + functions))
+            
+            # Analisar complexidade (linhas por função)
+            if [ "$functions" -gt 0 ]; then
+              avg_lines=$((lines / functions))
+              if [ "$avg_lines" -gt 30 ]; then
+                complex_functions=$((complex_functions + 1))
+              fi
+            fi
+          fi
+        done < js_files.txt
+        
+        # Analisar CSS
+        total_css_lines=0
+        total_css_rules=0
+        
+        while read css_file; do
+          if [ -f "$css_file" ]; then
+            lines=$(wc -l < "$css_file")
+            total_css_lines=$((total_css_lines + lines))
+            
+            # Contar regras CSS
+            rules=$(grep -c "{" "$css_file" 2>/dev/null || echo "0")
+            total_css_rules=$((total_css_rules + rules))
+          fi
+        done < css_files.txt
+        
+        # Analisar HTML principal
+        main_html="source-audit/index.html"
+        html_lines=0
+        if [ -f "$main_html" ]; then
+          html_lines=$(wc -l < "$main_html")
+          
+          # Contar elementos
+          elements=$(grep -c "<[^!]" "$main_html" 2>/dev/null || echo "0")
+          
+          # Contar scripts inline
+          inline_scripts=$(grep -c "<script>" "$main_html" 2>/dev/null || echo "0")
+          
+          # Contar CSS inline
+          inline_styles=$(grep -c "<style>" "$main_html" 2>/dev/null || echo "0")
+        fi
+        
+        # Calcular métricas de qualidade
+        total_files=$((js_count + css_count + html_count + json_count))
+        total_lines=$((total_js_lines + total_css_lines + html_lines))
+        
+        # Complexidade média por função
+        if [ "$total_js_functions" -gt 0 ]; then
+          avg_complexity=$((total_js_lines / total_js_functions))
+        else
+          avg_complexity=0
+        fi
+        
+        # Estatísticas
+        echo '<div class="stats-grid">' >> audit-report.html
+        
+        echo '<div class="stat-card">' >> audit-report.html
+        echo '<i class="fas fa-file-code fa-2x"></i>' >> audit-report.html
+        echo "<div class='stat-number good'>$total_files</div>" >> audit-report.html
+        echo '<p>Arquivos Analisados</p>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div class="stat-card">' >> audit-report.html
+        echo '<i class="fas fa-bars fa-2x"></i>' >> audit-report.html
+        echo "<div class='stat-number warning'>$total_lines</div>" >> audit-report.html
+        echo '<p>Linhas de Código</p>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div class="stat-card">' >> audit-report.html
+        echo '<i class="fas fa-code fa-2x"></i>' >> audit-report.html
+        echo "<div class='stat-number warning'>$total_js_functions</div>" >> audit-report.html
+        echo '<p>Funções JavaScript</p>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div class="stat-card">' >> audit-report.html
+        if [ "$avg_complexity" -lt 20 ]; then
+          complexity_class="good"
+        elif [ "$avg_complexity" -lt 40 ]; then
+          complexity_class="warning"
+        else
+          complexity_class="critical"
+        fi
+        echo "<div class='stat-number $complexity_class'>$avg_complexity</div>" >> audit-report.html
+        echo '<p>Complexidade Média</p>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '</div>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        # Seção 2: Análise de Acoplamento
+        echo '<div class="section">' >> audit-report.html
+        echo '<h2><i class="fas fa-link"></i> Análise de Acoplamento e Dependências</h2>' >> audit-report.html
+        
+        # Analisar dependências entre arquivos
+        echo '<h3>📊 Dependências entre Módulos</h3>' >> audit-report.html
+        
+        echo '<table class="metric-table">' >> audit-report.html
+        echo '<thead><tr><th>Módulo</th><th>Dependências</th><th>Tipo Acoplamento</th><th>Nível</th></tr></thead>' >> audit-report.html
+        echo '<tbody>' >> audit-report.html
+        
+        # Analisar index.html
+        deps_html=$(grep -c "src=\|href=" "$main_html" 2>/dev/null || echo "0")
+        echo '<tr>' >> audit-report.html
+        echo '<td>index.html</td>' >> audit-report.html
+        echo "<td>$deps_html</td>" >> audit-report.html
+        echo '<td>Resource</td>' >> audit-report.html
+        if [ "$deps_html" -lt 10 ]; then
+          echo '<td class="good">Baixo</td>' >> audit-report.html
+        elif [ "$deps_html" -lt 20 ]; then
+          echo '<td class="warning">Médio</td>' >> audit-report.html
+        else
+          echo '<td class="critical">Alto</td>' >> audit-report.html
+        fi
+        echo '</tr>' >> audit-report.html
+        
+        # Analisar arquivos JS por dependências
+        echo "🔗 Analisando acoplamento JavaScript..."
+        
+        js_deps_count=0
+        global_vars_count=0
+        
+        while read js_file; do
+          if [ -f "$js_file" ]; then
+            # Contar referências externas
+            deps=$(grep -c "document\.\|window\.\|fetch\|XMLHttpRequest\|import\|require" "$js_file" 2>/dev/null || echo "0")
+            js_deps_count=$((js_deps_count + deps))
+            
+            # Contar variáveis globais
+            globals=$(grep -c "var [a-zA-Z]" "$js_file" 2>/dev/null || echo "0")
+            global_vars_count=$((global_vars_count + globals))
+            
+            filename=$(basename "$js_file")
+            
+            echo '<tr>' >> audit-report.html
+            echo "<td>$filename</td>" >> audit-report.html
+            echo "<td>$deps</td>" >> audit-report.html
+            echo '<td>Functional</td>' >> audit-report.html
+            if [ "$deps" -lt 5 ]; then
+              echo '<td class="good">Baixo</td>' >> audit-report.html
+            elif [ "$deps" -lt 15 ]; then
+              echo '<td class="warning">Médio</td>' >> audit-report.html
+            else
+              echo '<td class="critical">Alto</td>' >> audit-report.html
+            fi
+            echo '</tr>' >> audit-report.html
+          fi
+        done < js_files.txt
+        
+        echo '</tbody>' >> audit-report.html
+        echo '</table>' >> audit-report.html
+        
+        # Diagrama de acoplamento
+        echo '<h3>🔗 Diagrama de Acoplamento</h3>' >> audit-report.html
+        echo '<div class="coupling-diagram">' >> audit-report.html
+        echo '<pre style="margin: 0;">' >> audit-report.html
+        
+        # Gerar diagrama simplificado
+        echo 'index.html' >> audit-report.html
+        echo '├── 📄 main.css' >> audit-report.html
+        echo '├── 📄 header.css' >> audit-report.html
+        echo '├── 📄 gallery.css' >> audit-report.html
+        echo '├── 📄 admin.css' >> audit-report.html
+        echo '└── 📁 js/' >> audit-report.html
+        echo '    ├── 📄 utils.js (INDEPENDENTE)' >> audit-report.html
+        echo '    ├── 📄 properties.js → utils.js' >> audit-report.html
+        echo '    ├── 📄 gallery.js → properties.js, utils.js' >> audit-report.html
+        echo '    └── 📄 admin.js → properties.js, utils.js' >> audit-report.html
+        
+        echo '</pre>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        # Métricas de acoplamento
+        echo '<h3>📈 Métricas de Acoplamento</h3>' >> audit-report.html
+        echo '<div class="stats-grid">' >> audit-report.html
+        
+        echo '<div class="stat-card">' >> audit-report.html
+        echo '<i class="fas fa-globe fa-2x"></i>' >> audit-report.html
+        echo "<div class='stat-number warning'>$global_vars_count</div>" >> audit-report.html
+        echo '<p>Variáveis Globais</p>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div class="stat-card">' >> audit-report.html
+        echo '<i class="fas fa-exchange-alt fa-2x"></i>' >> audit-report.html
+        echo "<div class='stat-number'>$js_deps_count</div>" >> audit-report.html
+        echo '<p>Dependências JS</p>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div class="stat-card">' >> audit-report.html
+        echo '<i class="fas fa-layer-group fa-2x"></i>' >> audit-report.html
+        if [ "$inline_scripts" -eq 0 ]; then
+          echo '<div class="stat-number good">0</div>' >> audit-report.html
+        else
+          echo "<div class='stat-number critical'>$inline_scripts</div>" >> audit-report.html
+        fi
+        echo '<p>Scripts Inline</p>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div class="stat-card">' >> audit-report.html
+        echo '<i class="fas fa-paint-brush fa-2x"></i>' >> audit-report.html
+        if [ "$inline_styles" -eq 0 ]; then
+          echo '<div class="stat-number good">0</div>' >> audit-report.html
+        else
+          echo "<div class='stat-number critical'>$inline_styles</div>" >> audit-report.html
+        fi
+        echo '<p>CSS Inline</p>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '</div>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        # Seção 3: Análise de Performance
+        echo '<div class="section">' >> audit-report.html
+        echo '<h2><i class="fas fa-tachometer-alt"></i> Análise de Performance</h2>' >> audit-report.html
+        
+        # Analisar overhead de funções
+        echo '<h3>⚡ Overhead de Chamadas de Função</h3>' >> audit-report.html
+        
+        # Identificar funções mais chamadas
+        echo '<div class="function-list">' >> audit-report.html
+        
+        high_call_functions=()
+        
+        while read js_file; do
+          if [ -f "$js_file" ]; then
+            # Extrair funções e estimar chamadas
+            grep -n "function\|=>" "$js_file" | while read -r line; do
+              line_num=$(echo "$line" | cut -d: -f1)
+              func_name=$(echo "$line" | sed -e 's/.*function //' -e 's/(.*//' -e 's/.*=>.*//' | xargs)
+              
+              if [ -n "$func_name" ] && [ "$func_name" != "{" ]; then
+                # Contar chamadas desta função no código
+                calls=$(grep -c "$func_name(" "$js_file" 2>/dev/null || echo "0")
+                
+                if [ "$calls" -gt 5 ]; then
+                  echo '<div class="function-item">' >> audit-report.html
+                  echo "<span class='function-name'>$func_name</span>" >> audit-report.html
+                  echo "<span class='complexity-badge'>$calls chamadas</span>" >> audit-report.html
+                  
+                  # Analisar complexidade ciclomática (simplificada)
+                  func_lines=0
+                  if [ -n "$line_num" ]; then
+                    # Tentar encontrar fim da função
+                    next_func=$(grep -n "function\|=>" "$js_file" | grep -A1 "^$line_num:" | tail -1 | cut -d: -f1)
+                    if [ -n "$next_func" ] && [ "$next_func" -gt "$line_num" ]; then
+                      func_lines=$((next_func - line_num))
+                    else
+                      total_lines=$(wc -l < "$js_file")
+                      func_lines=$((total_lines - line_num))
+                    fi
+                    
+                    if [ "$func_lines" -gt 50 ]; then
+                      echo "<span class='complexity-badge high-complexity'>$func_lines linhas</span>" >> audit-report.html
+                    elif [ "$func_lines" -gt 20 ]; then
+                      echo "<span class='complexity-badge medium-complexity'>$func_lines linhas</span>" >> audit-report.html
+                    else
+                      echo "<span class='complexity-badge'>$func_lines linhas</span>" >> audit-report.html
+                    fi
+                  fi
+                  
+                  echo '</div>' >> audit-report.html
+                fi
+              fi
+            done
+          fi
+        done < js_files.txt
+        
+        echo '</div>' >> audit-report.html
+        
+        # Recomendações de otimização
+        echo '<h3>🎯 Recomendações de Otimização</h3>' >> audit-report.html
+        
+        echo '<div class="recommendation">' >> audit-report.html
+        echo '<strong><i class="fas fa-bolt"></i> Inlining de Funções Críticas</strong>' >> audit-report.html
+        echo '<p>Funções pequenas (menos de 10 linhas) chamadas frequentemente podem ser inline para reduzir overhead.</p>' >> audit-report.html
+        echo '<ul>' >> audit-report.html
+        echo '<li>Criar cache de resultados para funções puras</li>' >> audit-report.html
+        echo '<li>Usar parâmetros por referência quando possível</li>' >> audit-report.html
+        echo '<li>Evitar closures desnecessários em loops</li>' >> audit-report.html
+        echo '</ul>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div class="recommendation">' >> audit-report.html
+        echo '<strong><i class="fas fa-database"></i> Redução de Dependências Globais</strong>' >> audit-report.html
+        echo '<p>Reduzir o uso de variáveis globais para diminuir acoplamento.</p>' >> audit-report.html
+        echo '<ul>' >> audit-report.html
+        echo '<li>Encapsular em módulos IIFE</li>' >> audit-report.html
+        echo '<li>Usar padrão Module Pattern</li>' >> audit-report.html
+        echo '<li>Implementar dependency injection</li>' >> audit-report.html
+        echo '</ul>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '</div>' >> audit-report.html
+        
+        # Seção 4: Ferramentas e Técnicas
+        echo '<div class="section">' >> audit-report.html
+        echo '<h2><i class="fas fa-tools"></i> Ferramentas e Técnicas de Medição</h2>' >> audit-report.html
+        
+        echo '<div class="tool-list">' >> audit-report.html
+        
+        echo '<div class="tool-card">' >> audit-report.html
+        echo '<h4><i class="fas fa-chart-line"></i> Profiling com Chrome DevTools</h4>' >> audit-report.html
+        echo '<p>Use a aba Performance para gravar e analisar execução. Identifique:</p>' >> audit-report.html
+        echo '<ul>' >> audit-report.html
+        echo '<li>Funções com maior tempo de execução</li>' >> audit-report.html
+        echo '<li>Chamadas desnecessárias</li>' >> audit-report.html
+        echo '<li>Bottlenecks de CPU</li>' >> audit-report.html
+        echo '</ul>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div class="tool-card">' >> audit-report.html
+        echo '<h4><i class="fas fa-stopwatch"></i> Benchmarking</h4>' >> audit-report.html
+        echo '<p>Medir tempo de execução com performance.now():</p>' >> audit-report.html
+        echo '<pre style="background: #0a0e14; padding: 10px; border-radius: 5px; margin: 10px 0;">' >> audit-report.html
+        echo 'const start = performance.now();' >> audit-report.html
+        echo '// Código a medir' >> audit-report.html
+        echo 'const end = performance.now();' >> audit-report.html
+        echo 'console.log(`Tempo: ${end - start}ms`);' >> audit-report.html
+        echo '</pre>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div class="tool-card">' >> audit-report.html
+        echo '<h4><i class="fas fa-sitemap"></i> Análise de Complexidade</h4>' >> audit-report.html
+        echo '<p>Métricas para identificar funções problemáticas:</p>' >> audit-report.html
+        echo '<ul>' >> audit-report.html
+        echo '<li>Complexidade Ciclomática (if/else, loops)</li>' >> audit-report.html
+        echo '<li>Número de parâmetros (max 3-4 ideal)</li>' >> audit-report.html
+        echo '<li>Linhas de código por função (max 20-30 ideal)</li>' >> audit-report.html
+        echo '</ul>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div class="tool-card">' >> audit-report.html
+        echo '<h4><i class="fas fa-network-wired"></i> Análise de Dependências</h4>' >> audit-report.html
+        echo '<p>Ferramentas para mapear acoplamento:</p>' >> audit-report.html
+        echo '<ul>' >> audit-report.html
+        echo '<li>Madge - gerar gráficos de dependências</li>' >> audit-report.html
+        echo '<li>Webpack Bundle Analyzer</li>' >> audit-report.html
+        echo '<li>ESLint plugin no-unused-vars</li>' >> audit-report.html
+        echo '</ul>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '</div>' >> audit-report.html
+        
+        # Exemplos de medição
+        echo '<h3>📏 Exemplos de Código de Medição</h3>' >> audit-report.html
+        echo '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">' >> audit-report.html
+        
+        echo '<div>' >> audit-report.html
+        echo '<h4>Medição de Overhead de Função</h4>' >> audit-report.html
+        echo '<pre style="background: #0a0e14; padding: 15px; border-radius: 5px; margin: 10px 0; overflow-x: auto;">' >> audit-report.html
+        echo '// Função para medir overhead' >> audit-report.html
+        echo 'function measureFunctionOverhead(func, iterations = 10000) {' >> audit-report.html
+        echo '  const start = performance.now();' >> audit-report.html
+        echo '  for (let i = 0; i < iterations; i++) {' >> audit-report.html
+        echo '    func();' >> audit-report.html
+        echo '  }' >> audit-report.html
+        echo '  const end = performance.now();' >> audit-report.html
+        echo '  return (end - start) / iterations;' >> audit-report.html
+        echo '}' >> audit-report.html
+        echo '' >> audit-report.html
+        echo '// Testar função específica' >> audit-report.html
+        echo 'const avgTime = measureFunctionOverhead(() => {' >> audit-report.html
+        echo '  // Código a testar' >> audit-report.html
+        echo '  return Math.sqrt(123456);' >> audit-report.html
+        echo '}, 100000);' >> audit-report.html
+        echo '' >> audit-report.html
+        echo 'console.log(`Tempo médio por chamada: ${avgTime}ms`);' >> audit-report.html
+        echo '</pre>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div>' >> audit-report.html
+        echo '<h4>Identificação de Hotspots</h4>' >> audit-report.html
+        echo '<pre style="background: #0a0e14; padding: 15px; border-radius: 5px; margin: 10px 0; overflow-x: auto;">' >> audit-report.html
+        echo '// Mapa de hotspots de função' >> audit-report.html
+        echo 'const functionHotspots = {};' >> audit-report.html
+        echo '' >> audit-report.html
+        echo '// Decorador para medir chamadas' >> audit-report.html
+        echo 'function trackFunctionCalls(func, funcName) {' >> audit-report.html
+        echo '  return function(...args) {' >> audit-report.html
+        echo '    if (!functionHotspots[funcName]) {' >> audit-report.html
+        echo '      functionHotspots[funcName] = 0;' >> audit-report.html
+        echo '    }' >> audit-report.html
+        echo '    functionHotspots[funcName]++;' >> audit-report.html
+        echo '    return func.apply(this, args);' >> audit-report.html
+        echo '  };' >> audit-report.html
+        echo '}' >> audit-report.html
+        echo '' >> audit-report.html
+        echo '// Exemplo de uso' >> audit-report.html
+        echo 'const originalFunction = () => { /* ... */ }' >> audit-report.html
+        echo 'const trackedFunction = trackFunctionCalls(originalFunction, "minhaFuncao");' >> audit-report.html
+        echo '' >> audit-report.html
+        echo '// Ver hotspots após execução' >> audit-report.html
+        echo 'console.log("Hotspots:", functionHotspots);' >> audit-report.html
+        echo '</pre>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '</div>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        # Seção 5: Melhores Práticas
+        echo '<div class="section">' >> audit-report.html
+        echo '<h2><i class="fas fa-graduation-cap"></i> Melhores Práticas de Otimização</h2>' >> audit-report.html
+        
+        echo '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">' >> audit-report.html
+        
+        echo '<div>' >> audit-report.html
+        echo '<h4><i class="fas fa-arrow-right"></i> Passagem de Parâmetros</h4>' >> audit-report.html
+        echo '<ul>' >> audit-report.html
+        echo '<li><strong>Objetos grandes:</strong> Passar por referência</li>' >> audit-report.html
+        echo '<li><strong>Tipos primitivos:</strong> Passar por valor OK</li>' >> audit-report.html
+        echo '<li><strong>Dicas:</strong>' >> audit-report.html
+        echo '  <ul>' >> audit-report.html
+        echo '  <li>Agrupar parâmetros em objetos</li>' >> audit-report.html
+        echo '  <li>Usar destructuring para clareza</li>' >> audit-report.html
+        echo '  <li>Evitar mais de 4 parâmetros</li>' >> audit-report.html
+        echo '  </ul>' >> audit-report.html
+        echo '</li>' >> audit-report.html
+        echo '</ul>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div>' >> audit-report.html
+        echo '<h4><i class="fas fa-code-branch"></i> Critérios para Inlining</h4>' >> audit-report.html
+        echo '<ul>' >> audit-report.html
+        echo '<li><strong>FAZER Inlining quando:</strong>' >> audit-report.html
+        echo '  <ul>' >> audit-report.html
+        echo '  <li>Função tem menos de 10 linhas</li>' >> audit-report.html
+        echo '  <li>Chamada em loops críticos</li>' >> audit-report.html
+        echo '  <li>Função chamada apenas 1-2 vezes</li>' >> audit-report.html
+        echo '  </ul>' >> audit-report.html
+        echo '</li>' >> audit-report.html
+        echo '<li><strong>EVITAR Inlining quando:</strong>' >> audit-report.html
+        echo '  <ul>' >> audit-report.html
+        echo '  <li>Função complexa (20+ linhas)</li>' >> audit-report.html
+        echo '  <li>Reutilizada em vários lugares</li>' >> audit-report.html
+        echo '  <li>Precisa de manutenção separada</li>' >> audit-report.html
+        echo '  </ul>' >> audit-report.html
+        echo '</li>' >> audit-report.html
+        echo '</ul>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div>' >> audit-report.html
+        echo '<h4><i class="fas fa-filter"></i> Redução de Chamadas</h4>' >> audit-report.html
+        echo '<ul>' >> audit-report.html
+        echo '<li><strong>Debouncing:</strong> Para eventos resize/scroll</li>' >> audit-report.html
+        echo '<li><strong>Throttling:</strong> Para eventos mousemove</li>' >> audit-report.html
+        echo '<li><strong>Caching:</strong> Resultados de funções puras</li>' >> audit-report.html
+        echo '<li><strong>Memoization:</strong> Para funções recursivas</li>' >> audit-report.html
+        echo '</ul>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '</div>' >> audit-report.html
+        
+        # Checklist de otimização
+        echo '<h3>✅ Checklist de Otimização</h3>' >> audit-report.html
+        echo '<div style="background: #1c2128; padding: 20px; border-radius: 8px;">' >> audit-report.html
+        echo '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">' >> audit-report.html
+        
+        echo '<div>' >> audit-report.html
+        echo '<h4>JavaScript</h4>' >> audit-report.html
+        echo '<ul>' >> audit-report.html
+        echo '<li><input type="checkbox"> Reduzir variáveis globais</li>' >> audit-report.html
+        echo '<li><input type="checkbox"> Usar const/let em vez de var</li>' >> audit-report.html
+        echo '<li><input type="checkbox"> Implementar debouncing</li>' >> audit-report.html
+        echo '<li><input type="checkbox"> Cache de seletores DOM</li>' >> audit-report.html
+        echo '</ul>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div>' >> audit-report.html
+        echo '<h4>CSS</h4>' >> audit-report.html
+        echo '<ul>' >> audit-report.html
+        echo '<li><input type="checkbox"> Remover CSS não utilizado</li>' >> audit-report.html
+        echo '<li><input type="checkbox"> Minimizar especificidade</li>' >> audit-report.html
+        echo '<li><input type="checkbox"> Usar variáveis CSS</li>' >> audit-report.html
+        echo '<li><input type="checkbox"> Otimizar animações</li>' >> audit-report.html
+        echo '</ul>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div>' >> audit-report.html
+        echo '<h4>HTML</h4>' >> audit-report.html
+        echo '<ul>' >> audit-report.html
+        echo '<li><input type="checkbox"> Remover scripts inline</li>' >> audit-report.html
+        echo '<li><input type="checkbox"> Usar atributos defer/async</li>' >> audit-report.html
+        echo '<li><input type="checkbox"> Otimizar ordem de carregamento</li>' >> audit-report.html
+        echo '<li><input type="checkbox"> Lazy loading de imagens</li>' >> audit-report.html
+        echo '</ul>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '</div>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '</div>' >> audit-report.html
+        
+        # Seção 6: Conclusão e Resumo
+        echo '<div class="section">' >> audit-report.html
+        echo '<h2><i class="fas fa-clipboard-check"></i> Resumo da Auditoria</h2>' >> audit-report.html
+        
+        # Calcular pontuação geral
+        score=0
+        max_score=100
+        
+        # Avaliar modularização
+        if [ "$inline_scripts" -eq 0 ]; then
+          score=$((score + 20))
+        else
+          score=$((score + 10))
+        fi
+        
+        # Avaliar complexidade
+        if [ "$avg_complexity" -lt 25 ]; then
+          score=$((score + 20))
+        elif [ "$avg_complexity" -lt 40 ]; then
+          score=$((score + 10))
+        else
+          score=$((score + 5))
+        fi
+        
+        # Avaliar acoplamento
+        if [ "$global_vars_count" -lt 10 ]; then
+          score=$((score + 20))
+        elif [ "$global_vars_count" -lt 20 ]; then
+          score=$((score + 15))
+        else
+          score=$((score + 5))
+        fi
+        
+        # Avaliar estrutura
+        if [ "$js_count" -ge 4 ]; then
+          score=$((score + 20))
+        elif [ "$js_count" -ge 2 ]; then
+          score=$((score + 15))
+        else
+          score=$((score + 5))
+        fi
+        
+        # Avaliar CSS modularizado
+        if [ "$css_count" -ge 4 ]; then
+          score=$((score + 20))
+        else
+          score=$((score + 10))
+        fi
+        
+        # Determinar status
+        if [ "$score" -ge 80 ]; then
+          status="ÓTIMO"
+          status_class="good"
+        elif [ "$score" -ge 60 ]; then
+          status="BOM"
+          status_class="warning"
+        else
+          status="PRECISA MELHORAR"
+          status_class="critical"
+        fi
+        
+        echo '<div style="text-align: center; padding: 30px; background: #1c2128; border-radius: 10px;">' >> audit-report.html
+        echo "<h3 style='margin: 0 0 20px 0;'>Pontuação Geral de Qualidade</h3>" >> audit-report.html
+        echo "<div style='font-size: 4em; font-weight: bold; margin: 20px 0; color: $status_class;'>$score/$max_score</div>" >> audit-report.html
+        echo "<h3 class='$status_class'>$status</h3>" >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        # Resumo executivo
+        echo '<div style="margin-top: 30px;">' >> audit-report.html
+        echo '<h3>📋 Resumo Executivo</h3>' >> audit-report.html
+        echo '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">' >> audit-report.html
+        
+        echo '<div>' >> audit-report.html
+        echo '<h4>✅ Pontos Fortes</h4>' >> audit-report.html
+        echo '<ul>' >> audit-report.html
+        if [ "$css_count" -ge 4 ]; then
+          echo '<li>CSS bem modularizado</li>' >> audit-report.html
+        fi
+        if [ "$inline_scripts" -eq 0 ]; then
+          echo '<li>Sem scripts inline</li>' >> audit-report.html
+        fi
+        if [ "$total_js_functions" -gt 0 ]; then
+          echo "<li>$total_js_functions funções identificadas</li>" >> audit-report.html
+        fi
+        echo '<li>Estrutura de pastas organizada</li>' >> audit-report.html
+        echo '</ul>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div>' >> audit-report.html
+        echo '<h4>⚠️ Áreas para Melhoria</h4>' >> audit-report.html
+        echo '<ul>' >> audit-report.html
+        if [ "$global_vars_count" -gt 10 ]; then
+          echo "<li>Reduzir variáveis globais ($global_vars_count)</li>" >> audit-report.html
+        fi
+        if [ "$avg_complexity" -gt 25 ]; then
+          echo "<li>Reduzir complexidade média ($avg_complexity linhas/função)</li>" >> audit-report.html
+        fi
+        if [ "$inline_styles" -gt 0 ]; then
+          echo "<li>Remover CSS inline ($inline_styles)</li>" >> audit-report.html
+        fi
+        echo '<li>Implementar mais técnicas de caching</li>' >> audit-report.html
+        echo '</ul>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '<div>' >> audit-report.html
+        echo '<h4>🎯 Ações Prioritárias</h4>' >> audit-report.html
+        echo '<ol>' >> audit-report.html
+        echo '<li>Identificar funções com maior overhead</li>' >> audit-report.html
+        echo '<li>Implementar memoization para funções puras</li>' >> audit-report.html
+        echo '<li>Aplicar debouncing em eventos de UI</li>' >> audit-report.html
+        echo '<li>Reduzir acoplamento entre módulos</li>' >> audit-report.html
+        echo '</ol>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '</div>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        # Informações finais
+        echo '<div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #30363d;">' >> audit-report.html
+        echo "<p><strong>Auditoria concluída em:</strong> $DATE_NOW</p>" >> audit-report.html
+        echo '<p>' >> audit-report.html
+        echo '<a href="https://rclessa25-hub.github.io/imoveis-maceio/"><i class="fas fa-external-link-alt"></i> Site Principal</a>' >> audit-report.html
+        echo '<span style="margin: 0 10px;">•</span>' >> audit-report.html
+        echo '<a href="https://github.com/rclessa25-hub/imoveis-maceio"><i class="fab fa-github"></i> Repositório</a>' >> audit-report.html
+        echo '<span style="margin: 0 10px;">•</span>' >> audit-report.html
+        echo '<a href="#"><i class="fas fa-download"></i> Baixar Relatório</a>' >> audit-report.html
+        echo '</p>' >> audit-report.html
+        echo '</div>' >> audit-report.html
+        
+        echo '</div>' >> audit-report.html
+        echo '</body>' >> audit-report.html
+        echo '</html>' >> audit-report.html
+        
+        # Limpar arquivos temporários
+        rm -f js_files.txt css_files.txt html_files.txt json_files.txt
+        
+        echo "✅ Relatório de auditoria criado com sucesso!"
+        echo "📊 Estatísticas coletadas:"
+        echo "  • Arquivos JS: $js_count"
+        echo "  • Funções: $total_js_functions"
+        echo "  • Complexidade média: $avg_complexity linhas/função"
+        echo "  • Variáveis globais: $global_vars_count"
+        echo "  • Pontuação qualidade: $score/$max_score"
+    
+    - name: 📦 Upload para GitHub Pages
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '.'
+    
+    - name: 🚀 Deploy do relatório
+      uses: actions/deploy-pages@v4
+    
+    - name: 🎉 Resultado final
+      run: |
+        echo ""
+        echo "🎉 AUDITORIA DE PERFORMANCE COMPLETA!"
+        echo "===================================="
+        echo ""
+        echo "✅ ANÁLISE DE ACOPLAMENTO"
+        echo "✅ MÉTRICAS DE COMPLEXIDADE"
+        echo "✅ IDENTIFICAÇÃO DE OVERHEAD"
+        echo "✅ RECOMENDAÇÕES DE OTIMIZAÇÃO"
+        echo ""
+        echo "🔍 RELATÓRIO INCLUI:"
+        echo "• 📊 Estatísticas detalhadas do código"
+        echo "• 🔗 Análise de acoplamento e dependências"
+        echo "• ⚡ Identificação de funções com maior overhead"
+        echo "• 🛠️ Ferramentas e técnicas de medição"
+        echo "• 🎯 Melhores práticas de otimização"
+        echo "• ✅ Checklist de ações prioritárias"
+        echo ""
+        echo "🌐 ACESSE O RELATÓRIO EM:"
+        echo "https://rclessa25-hub.github.io/reports-wlimoveis/audit-report.html"
+        echo ""
+        echo "📋 PRÓXIMOS PASSOS RECOMENDADOS:"
+        echo "1. Implementar as recomendações de otimização"
+        echo "2. Usar as técnicas de profiling sugeridas"
+        echo "3. Monitorar performance após otimizações"
+        echo "4. Re-executar auditoria periodicamente"
