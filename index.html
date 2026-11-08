@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 Relatório - Imóveis Maceió</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .card { border: 1px solid #ddd; padding: 20px; margin: 10px 0; border-radius: 5px; }
+        .stat { display: inline-block; margin: 10px; padding: 15px; background: #f0f0f0; }
+        .number { font-size: 2em; font-weight: bold; color: #2ea44f; }
+    </style>
+</head>
+<body>
+    <h1>📊 Relatório Analítico</h1>
+    <h2>Imóveis Maceió - Análise Estrutural</h2>
+    
+    <div id="stats">
+        <h3>Estatísticas:</h3>
+        <div class="stat">
+            <div class="number" id="html-count">0</div>
+            <div>HTML</div>
+        </div>
+        <div class="stat">
+            <div class="number" id="css-count">0</div>
+            <div>CSS</div>
+        </div>
+        <div class="stat">
+            <div class="number" id="js-count">0</div>
+            <div>JavaScript</div>
+        </div>
+        <div class="stat">
+            <div class="number" id="json-count">0</div>
+            <div>JSON</div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3>Estrutura do Projeto:</h3>
+        <pre id="tree-view">Carregando...</pre>
+    </div>
+    
+    <script>
+        // Dados do relatório
+        const stats = $STATS;
+        
+        // Atualizar estatísticas
+        document.getElementById('html-count').textContent = stats.files.html || 0;
+        document.getElementById('css-count').textContent = stats.files.css || 0;
+        document.getElementById('js-count').textContent = stats.files.js || 0;
+        document.getElementById('json-count').textContent = stats.files.json || 0;
+        
+        // Data de geração
+        document.body.innerHTML += `<p><strong>Gerado em:</strong> ${stats.date || 'N/A'}</p>`;
+    </script>
+</body>
+</html>
